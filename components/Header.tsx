@@ -1,63 +1,52 @@
 import Link from "next/link";
-import { Logo } from "./Logo";
+import { createSupabaseServer } from "@/lib/supabase-server";
+import { LogoutButton } from "@/components/LogoutButton";
 
-export function Header() {
+export async function Header() {
+  const supabase = await createSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const nombre = user?.user_metadata?.nombre as string | undefined;
+  const esProfesional = user?.user_metadata?.es_profesional === true;
+
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-[#fafaf6]/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-sv-olive/30 bg-sv-dark backdrop-blur">
       <div className="container-pad flex h-16 items-center justify-between gap-6">
-        <div className="flex items-center gap-8">
-          <Logo />
-          <nav className="hidden items-center gap-6 text-sm text-ink-700 md:flex">
-            <Link href="/buscar" className="hover:text-ink-950">
-              Explorar
-            </Link>
-            <Link href="/categorias" className="hover:text-ink-950">
-              Categorías
-            </Link>
-            <Link href="/como-funciona" className="hover:text-ink-950">
-              Cómo funciona
-            </Link>
-            <Link
-              href="/oferentes"
-              className="hover:text-ink-950"
-            >
-              Para profesionales
-            </Link>
-          </nav>
-        </div>
+        <div />
 
-        <div className="flex items-center gap-2">
-          <Link href="/ingresar" className="btn-ghost hidden sm:inline-flex">
-            Ingresar
+        <div className="flex items-center gap-3">
+          <Link href="/como-funciona" className="hidden text-sm text-zap-200 hover:text-white sm:inline">
+            About Us
           </Link>
-          <Link href="/publicar" className="btn-zap">
-            <span className="hidden sm:inline">Publicar problema</span>
-            <span className="sm:hidden">Publicar</span>
-            <Arrow />
-          </Link>
+
+          {user ? (
+            <>
+              <span className="hidden items-center gap-2 sm:flex">
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    esProfesional
+                      ? "bg-sv-primary text-white"
+                      : "bg-zap-200/20 text-zap-200"
+                  }`}
+                >
+                  {esProfesional ? "Profesional" : "Demandante"}
+                </span>
+                <span className="text-sm text-white">{nombre ?? user.email}</span>
+              </span>
+              <LogoutButton />
+            </>
+          ) : (
+            <>
+              <Link href="/ingresar" className="btn text-zap-200 hover:bg-sv-olive/40">
+                Ingresar
+              </Link>
+              <Link href="/registrar" className="btn bg-sv-primary text-white hover:bg-sv-olive">
+                Crear cuenta
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
-  );
-}
-
-function Arrow() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <path
-        d="M3 7h8m0 0L7.5 3.5M11 7l-3.5 3.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

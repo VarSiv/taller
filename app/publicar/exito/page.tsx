@@ -20,18 +20,9 @@ export default function ExitoPage() {
             ofertas.
           </p>
 
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            <Stat label="Tiempo estimado a 1ra oferta" value="< 15 min" />
-            <Stat label="Técnicos notificados" value="38" />
-            <Stat label="Ofertas esperadas" value="3 – 6" />
-          </div>
-
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link href="/mis-publicaciones" className="btn-primary">
-              Ver mis publicaciones
-            </Link>
-            <Link href="/buscar" className="btn-outline">
-              Explorar más servicios
+            <Link href="/" className="btn-primary">
+              Volver al inicio
             </Link>
           </div>
 
@@ -46,16 +37,5 @@ export default function ExitoPage() {
       </main>
       <Footer />
     </>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="card p-4">
-      <div className="text-xs uppercase tracking-wider text-ink-500">
-        {label}
-      </div>
-      <div className="display mt-1 text-2xl">{value}</div>
-    </div>
   );
 }

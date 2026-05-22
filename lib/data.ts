@@ -653,6 +653,118 @@ export const POSTED_JOBS: PostedJob[] = [
     photo:
       "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=60",
   },
+  {
+    id: "j6",
+    title: "Reparar canilla que gotea en el baño principal",
+    categorySlug: "plomeria",
+    postedBy: "Valentina R.",
+    postedAgo: "hace 45 min",
+    zone: "Palermo Hollywood",
+    budget: { min: 15000, max: 40000 },
+    bidsCount: 3,
+    status: "abierto",
+    description:
+      "La canilla del lavatorio gotea constantemente. Ya cambié la arandela y sigue. Necesito alguien que lo resuelva hoy o mañana.",
+    urgency: "hoy",
+    photo:
+      "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=800&q=60",
+  },
+  {
+    id: "j7",
+    title: "Instalar aire acondicionado en dormitorio — piso 8",
+    categorySlug: "aire",
+    postedBy: "Marcos D.",
+    postedAgo: "hace 2 h",
+    zone: "Puerto Madero",
+    budget: { min: 90000, max: 150000 },
+    bidsCount: 5,
+    status: "abierto",
+    description:
+      "Tengo un split Samsung 3500 frigorías sin instalar. El dormitorio da a fachada, piso 8. Necesito cañería larga y soporte especial.",
+    urgency: "esta_semana",
+    photo:
+      "https://images.unsplash.com/photo-1631545806609-ad65bda6d3a4?auto=format&fit=crop&w=800&q=60",
+  },
+  {
+    id: "j8",
+    title: "Pintar cocina y baño — departamento en alquiler",
+    categorySlug: "pintura",
+    postedBy: "Luciana P.",
+    postedAgo: "hace 4 h",
+    zone: "Caballito",
+    budget: { min: 120000, max: 200000 },
+    bidsCount: 7,
+    status: "abierto",
+    description:
+      "Voy a entregar el depto al dueño. Necesito pintar cocina y baño, hay manchas de humedad leve en el techo del baño. Quiero blanco.",
+    urgency: "esta_semana",
+    photo:
+      "https://images.unsplash.com/photo-1562259949-e8e7689d7828?auto=format&fit=crop&w=800&q=60",
+  },
+  {
+    id: "j9",
+    title: "Cambiar cerradura puerta de entrada — me robaron",
+    categorySlug: "cerrajeria",
+    postedBy: "Andrés M.",
+    postedAgo: "hace 1 h",
+    zone: "Almagro",
+    budget: { min: 60000, max: 120000 },
+    bidsCount: 8,
+    status: "abierto",
+    description:
+      "Me robaron y quiero cambiar la cerradura lo antes posible. Puerta de madera, cerradura Kallay doble paleta. Necesito urgente hoy.",
+    urgency: "hoy",
+    photo:
+      "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=800&q=60",
+  },
+  {
+    id: "j10",
+    title: "Lavarropas no centrifuga — Whirlpool 8kg",
+    categorySlug: "electrodomesticos",
+    postedBy: "Florencia G.",
+    postedAgo: "hace 3 h",
+    zone: "Villa Crespo",
+    budget: { min: 25000, max: 60000 },
+    bidsCount: 2,
+    status: "abierto",
+    description:
+      "El lavarropas lava bien pero al llegar al ciclo de centrifugado se detiene y da error E3. Modelo WFE8514AXW, tiene 2 años.",
+    urgency: "esta_semana",
+    photo:
+      "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?auto=format&fit=crop&w=800&q=60",
+  },
+  {
+    id: "j11",
+    title: "Mueble de cocina a medida — remodelación completa",
+    categorySlug: "carpinteria",
+    postedBy: "Carolina V.",
+    postedAgo: "hace 1 día",
+    zone: "Belgrano",
+    budget: { min: 400000, max: 700000 },
+    bidsCount: 4,
+    status: "en_revision",
+    description:
+      "Quiero renovar los muebles bajos y altos de la cocina. Mide 4x2.5m. Estoy buscando melamina blanca con manijas negras. Pido presupuesto con visita previa.",
+    urgency: "flexible",
+    photo:
+      "https://images.unsplash.com/photo-1581622558663-b2e33377dfb2?auto=format&fit=crop&w=800&q=60",
+  },
+  {
+    id: "j12",
+    title: "Detección de pérdida de gas — olor fuerte en cocina",
+    categorySlug: "gas",
+    postedBy: "Roberto C.",
+    postedAgo: "hace 20 min",
+    zone: "San Isidro",
+    budget: { min: 40000, max: 80000 },
+    bidsCount: 1,
+    status: "abierto",
+    description:
+      "Siento olor a gas en la cocina, especialmente cerca del termotanque. Ya cerré la llave general. Necesito un gasista matriculado urgente.",
+    urgency: "hoy",
+    photo:
+      "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&w=800&q=60",
+  },
 ];
 
 export const ZONES = [

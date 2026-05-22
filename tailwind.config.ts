@@ -9,6 +9,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Neutrales para texto y fondos neutros
         ink: {
           50: "#f6f7f5",
           100: "#e8eae5",
@@ -22,37 +23,47 @@ export default {
           900: "#1e221c",
           950: "#0e110d",
         },
-        brand: {
-          50: "#effaf3",
-          100: "#d8f3e0",
-          200: "#b3e6c4",
-          300: "#7fd29f",
-          400: "#48b676",
-          500: "#249957",
-          600: "#177a45",
-          700: "#136139",
-          800: "#114d2f",
-          900: "#0e3f28",
-          950: "#062315",
+        // Paleta de marca SolvIT (informe de diseño)
+        sv: {
+          mint: "#99DDC8",      // Fondos y respiración visual
+          light: "#95BF74",     // Elementos amigables
+          primary: "#659B5E",   // Botones y acciones
+          olive: "#556F44",     // Títulos y navegación
+          dark: "#283F3B",      // Branding y confianza
         },
+        // Escala extendida para componentes (estados, badges, etc.)
+        brand: {
+          50: "#f0f7ee",
+          100: "#d5edda",
+          200: "#add9b5",
+          300: "#95BF74",
+          400: "#7aac60",
+          500: "#659B5E",
+          600: "#556F44",
+          700: "#445937",
+          800: "#364829",
+          900: "#283F3B",
+          950: "#1a2b27",
+        },
+        // Mint como escala para acentos y highlights
         zap: {
-          DEFAULT: "#d4ff3a",
-          50: "#fbffe6",
-          100: "#f5ffba",
-          200: "#edff84",
-          300: "#e3ff43",
-          400: "#d4ff3a",
-          500: "#b3e000",
-          600: "#8aae00",
-          700: "#688400",
-          800: "#536800",
-          900: "#465600",
+          DEFAULT: "#99DDC8",
+          50: "#f0faf7",
+          100: "#d5f0e7",
+          200: "#aadfd0",
+          300: "#99DDC8",
+          400: "#75c9af",
+          500: "#4dab8e",
+          600: "#3a8a71",
+          700: "#2e6e5a",
+          800: "#255847",
+          900: "#1c4537",
         },
       },
       fontFamily: {
-        sans: ["var(--font-geist)", "system-ui", "sans-serif"],
-        display: ["var(--font-instrument)", "Georgia", "serif"],
-        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-sora)", "system-ui", "sans-serif"],
+        jakarta: ["var(--font-jakarta)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         xl: "14px",
@@ -61,9 +72,9 @@ export default {
       },
       backgroundImage: {
         "grid-faint":
-          "linear-gradient(to right, rgba(14,17,13,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(14,17,13,0.04) 1px, transparent 1px)",
+          "linear-gradient(to right, rgba(40,63,59,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(40,63,59,0.05) 1px, transparent 1px)",
         "dot-pattern":
-          "radial-gradient(rgba(14,17,13,0.08) 1px, transparent 1px)",
+          "radial-gradient(rgba(40,63,59,0.08) 1px, transparent 1px)",
       },
       backgroundSize: {
         grid: "32px 32px",

@@ -8,41 +8,46 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-[#fafaf6] text-ink-950;
-    font-feature-settings: "ss01", "cv11";
+    @apply bg-[#f5fdf9] text-sv-dark;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sora), system-ui, sans-serif;
   }
   ::selection {
-    @apply bg-zap-300 text-ink-950;
+    @apply bg-zap-300 text-sv-dark;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ink-900;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sv-primary;
   }
+  /* Botón principal: Primary Green */
   .btn-primary {
-    @apply btn bg-ink-950 text-white hover:bg-ink-800;
+    @apply btn bg-sv-primary text-white hover:bg-sv-olive;
   }
+  /* Botón CTA destacado: Dark Green */
   .btn-zap {
-    @apply btn bg-zap-300 text-ink-950 hover:bg-zap-400;
+    @apply btn bg-sv-dark text-white hover:bg-sv-olive;
   }
   .btn-ghost {
-    @apply btn text-ink-900 hover:bg-ink-100;
+    @apply btn text-sv-dark hover:bg-zap-100;
   }
   .btn-outline {
-    @apply btn border border-ink-200 bg-white text-ink-950 hover:border-ink-400;
+    @apply btn border border-sv-primary bg-white text-sv-dark hover:bg-zap-50;
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1 text-xs font-medium text-ink-700;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-zap-200 bg-zap-50 px-3 py-1 text-xs font-medium text-sv-dark;
   }
   .card {
-    @apply rounded-2xl border border-ink-100 bg-white;
+    @apply rounded-2xl border border-zap-100 bg-white;
   }
   .field {
-    @apply w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm placeholder:text-ink-400 focus:border-ink-900 focus:outline-none;
+    @apply w-full rounded-xl border border-zap-200 bg-white px-4 py-3 text-sm placeholder:text-ink-400 focus:border-sv-primary focus:outline-none;
   }
   .label {
-    @apply mb-1.5 block text-sm font-medium text-ink-800;
+    @apply mb-1.5 block text-sm font-medium text-sv-olive;
   }
   .pill {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
@@ -50,8 +55,9 @@
   .container-pad {
     @apply mx-auto max-w-7xl px-5 sm:px-6 lg:px-8;
   }
+  /* Títulos con Sora */
   .display {
-    @apply font-display font-medium tracking-tight;
+    @apply font-display font-semibold tracking-tight text-sv-dark;
   }
 }
 
@@ -64,7 +70,6 @@
   scrollbar-width: none;
 }
 
-/* Subtle marquee for trust badges */
 @keyframes drift {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }

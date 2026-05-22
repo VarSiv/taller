@@ -1,24 +1,22 @@
 import type { Metadata } from "next";
-import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Inter, Sora, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-geist",
+  variable: "--font-inter",
   display: "swap",
 });
 
-const mono = JetBrains_Mono({
+const sora = Sora({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-sora",
   display: "swap",
 });
 
-const instrument = Instrument_Serif({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
-  variable: "--font-instrument",
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -36,7 +34,8 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${inter.variable} ${mono.variable} ${instrument.variable}`}
+      className={`${inter.variable} ${sora.variable} ${jakarta.variable}`}
+      suppressHydrationWarning
     >
       <body className="min-h-screen antialiased">{children}</body>
     </html>
