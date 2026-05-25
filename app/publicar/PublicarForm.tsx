@@ -35,6 +35,8 @@ function PublicarInner() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [zone, setZone] = useState("");
   const [urgency, setUrgency] = useState("hoy");
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function next() {
     if (step < STEPS.length - 1) setStep(step + 1);
@@ -44,16 +46,30 @@ function PublicarInner() {
   }
 
   async function submit() {
-    await supabase.from("publicaciones").insert({
+    setSubmitError("");
+    setSubmitting(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const nombre = user?.user_metadata?.nombre as string | undefined;
+
+    const { error } = await supabase.from("publicaciones").insert({
       title,
       description: desc,
       category_slug: cat,
       zone,
       urgency,
       photo: photos[0] ?? null,
-      posted_by: "Anónimo",
+      posted_by: nombre ?? "Anónimo",
+      user_id: user?.id ?? null,
       status: "abierto",
     });
+
+    if (error) {
+      setSubmitError(`Error al publicar: ${error.message}`);
+      setSubmitting(false);
+      return;
+    }
+
     router.push("/publicar/exito");
   }
 
@@ -151,8 +167,14 @@ function PublicarInner() {
               )}
             </div>
 
-            <div className="mt-10 flex flex-col-reverse gap-3 border-t border-zap-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <button onClick={back} disabled={step === 0} className="btn-ghost disabled:opacity-40">
+            {submitError && (
+              <p className="mt-4 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">
+                {submitError}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse gap-3 border-t border-zap-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <button onClick={back} disabled={step === 0 || submitting} className="btn-ghost disabled:opacity-40">
                 ← Volver
               </button>
               {step < STEPS.length - 1 ? (
@@ -160,8 +182,8 @@ function PublicarInner() {
                   Continuar
                 </button>
               ) : (
-                <button onClick={submit} className="btn-zap">
-                  Publicar problema
+                <button onClick={submit} disabled={submitting} className="btn-zap disabled:opacity-50">
+                  {submitting ? "Publicando…" : "Publicar problema"}
                 </button>
               )}
             </div>

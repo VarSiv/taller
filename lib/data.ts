@@ -5,6 +5,7 @@ export type Category = {
   icon: string;
   count: number;
   accent: string;
+  hue?: number;
 };
 
 export type Pro = {
@@ -69,6 +70,7 @@ export const CATEGORIES: Category[] = [
     icon: "🔧",
     count: 142,
     accent: "from-sky-100 to-sky-50",
+    hue: 220,
   },
   {
     slug: "electricidad",
@@ -77,6 +79,7 @@ export const CATEGORIES: Category[] = [
     icon: "⚡",
     count: 118,
     accent: "from-amber-100 to-amber-50",
+    hue: 85,
   },
   {
     slug: "gas",
@@ -85,6 +88,7 @@ export const CATEGORIES: Category[] = [
     icon: "🔥",
     count: 47,
     accent: "from-rose-100 to-rose-50",
+    hue: 30,
   },
   {
     slug: "aire",
@@ -93,6 +97,7 @@ export const CATEGORIES: Category[] = [
     icon: "❄️",
     count: 96,
     accent: "from-cyan-100 to-cyan-50",
+    hue: 200,
   },
   {
     slug: "cerrajeria",
@@ -101,6 +106,7 @@ export const CATEGORIES: Category[] = [
     icon: "🔑",
     count: 64,
     accent: "from-zinc-100 to-zinc-50",
+    hue: 260,
   },
   {
     slug: "pintura",
@@ -109,6 +115,7 @@ export const CATEGORIES: Category[] = [
     icon: "🎨",
     count: 73,
     accent: "from-violet-100 to-violet-50",
+    hue: 25,
   },
   {
     slug: "carpinteria",
@@ -117,6 +124,7 @@ export const CATEGORIES: Category[] = [
     icon: "🪵",
     count: 51,
     accent: "from-orange-100 to-orange-50",
+    hue: 60,
   },
   {
     slug: "albanileria",
@@ -125,6 +133,7 @@ export const CATEGORIES: Category[] = [
     icon: "🧱",
     count: 38,
     accent: "from-stone-100 to-stone-50",
+    hue: 45,
   },
   {
     slug: "electrodomesticos",
@@ -133,6 +142,7 @@ export const CATEGORIES: Category[] = [
     icon: "📺",
     count: 42,
     accent: "from-emerald-100 to-emerald-50",
+    hue: 290,
   },
   {
     slug: "vidrieria",
@@ -141,6 +151,7 @@ export const CATEGORIES: Category[] = [
     icon: "🪟",
     count: 22,
     accent: "from-blue-100 to-blue-50",
+    hue: 210,
   },
 ];
 

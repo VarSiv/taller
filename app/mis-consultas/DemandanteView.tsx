@@ -1,0 +1,499 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { CATEGORIES } from "@/lib/data";
+import { CategoryArt } from "@/components/CategoryArt";
+import { rechazarPropuesta } from "./actions";
+import { AceptarModal, type PropuestaParaPago, type PublicacionParaPago } from "@/components/AceptarModal";
+
+type Propuesta = {
+  id: string;
+  precio: number;
+  nombre_profesional: string | null;
+  profesional_id: string;
+  profesional_email: string | null;
+  profesional_telefono: string | null;
+  profesional_zona: string | null;
+  codigo_pago: string | null;
+  estado: string | null;
+  publicacion_id: string;
+  created_at: string;
+};
+
+type Publicacion = {
+  id: string;
+  title: string;
+  description: string;
+  category_slug: string;
+  zone: string;
+  status: string;
+  created_at: string;
+  propuestas: Propuesta[];
+};
+
+type Tab = "abierto" | "cerrado";
+
+// ─── StatusPill ───────────────────────────────────────────────────────────────
+function StatusPill({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    abierto:   { label: "Activa",    cls: "bg-sv-primary/10 text-sv-olive" },
+    en_curso:  { label: "En curso",  cls: "bg-blue-100 text-blue-700" },
+    cerrado:   { label: "Cerrada",   cls: "bg-ink-100 text-ink-500" },
+    aceptada:  { label: "Aceptada",  cls: "bg-sv-primary/10 text-sv-olive" },
+    rechazada: { label: "Rechazada", cls: "bg-rose-100 text-rose-700" },
+    pendiente: { label: "Pendiente", cls: "bg-amber-100 text-amber-700" },
+  };
+  const s = map[status] ?? map.abierto;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold ${s.cls}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+      {s.label}
+    </span>
+  );
+}
+
+// ─── CatThumb ─────────────────────────────────────────────────────────────────
+function CatThumb({ slug }: { slug: string }) {
+  const cat = CATEGORIES.find((c) => c.slug === slug);
+  return (
+    <CategoryArt
+      icon={cat?.icon ?? "🔧"}
+      hue={cat?.hue ?? 180}
+      className="h-16 w-16 shrink-0 rounded-2xl"
+    />
+  );
+}
+
+// ─── PropuestaRow ─────────────────────────────────────────────────────────────
+function PropuestaRow({
+  propuesta,
+  publicacion,
+  onAceptar,
+}: {
+  propuesta: Propuesta;
+  publicacion: Publicacion;
+  onAceptar: (p: Propuesta, pub: Publicacion) => void;
+}) {
+  const [pending, startTransition] = useTransition();
+
+  const nombre = propuesta.nombre_profesional ?? "Profesional";
+  const initials = nombre
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const estado = propuesta.estado ?? "pendiente";
+  const isAccepted = estado === "aceptada";
+  const isRejected = estado === "rechazada";
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-ink-100 bg-[#f5fdf9] p-3.5 sm:flex-row sm:items-center">
+      {/* Avatar + info */}
+      <div className="flex flex-1 items-center gap-3 min-w-0">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sv-dark to-sv-primary text-xs font-bold text-white">
+          {initials}
+        </span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-sv-dark">{nombre}</span>
+            {(isAccepted || isRejected) && <StatusPill status={estado} />}
+          </div>
+          <div className="text-[11.5px] text-ink-400">
+            Enviada el {new Date(propuesta.created_at).toLocaleDateString("es-AR")}
+          </div>
+        </div>
+      </div>
+
+      {/* Price + actions */}
+      <div className="flex items-center gap-3 sm:gap-4 sm:shrink-0">
+        <div className="text-right">
+          <div className="font-display text-xl font-semibold leading-none tracking-tight text-sv-dark">
+            ${Number(propuesta.precio).toLocaleString("es-AR")}
+          </div>
+          <div className="text-[11px] text-ink-400 mt-0.5">por consulta</div>
+        </div>
+
+        {!isAccepted && !isRejected && (
+          <div className="flex gap-2 ml-auto sm:ml-0">
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => startTransition(async () => rechazarPropuesta(propuesta.id))}
+              className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-500 hover:bg-ink-50 disabled:opacity-50 transition"
+            >
+              Rechazar
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => onAceptar(propuesta, publicacion)}
+              className="rounded-lg bg-sv-primary px-4 py-1.5 text-xs font-semibold text-white hover:bg-sv-olive disabled:opacity-50 transition"
+            >
+              Aceptar
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── ProfesionalContacto ──────────────────────────────────────────────────────
+function ProfesionalContacto({ propuesta }: { propuesta: Propuesta }) {
+  const nombre = propuesta.nombre_profesional ?? "Profesional";
+  const initials = nombre.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const waLink = propuesta.profesional_telefono
+    ? `https://wa.me/${propuesta.profesional_telefono.replace(/\D/g, "")}`
+    : null;
+
+  return (
+    <div className="border-t border-ink-100 bg-sv-primary/4 px-5 py-4">
+      <p className="mb-3 text-[10.5px] font-semibold uppercase tracking-wide text-sv-olive">
+        🔓 Datos desbloqueados
+      </p>
+
+      {/* Pro header */}
+      <div className="mb-3 flex items-center gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sv-dark to-sv-primary text-xs font-bold text-white">
+          {initials}
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-sv-dark">{nombre}</p>
+          <p className="text-[11px] text-ink-400">Profesional verificado en SolvIT</p>
+        </div>
+      </div>
+
+      {/* Filas de contacto */}
+      <div className="overflow-hidden rounded-xl border border-ink-100 bg-white divide-y divide-ink-100">
+        {propuesta.profesional_telefono && (
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">Teléfono</p>
+              <p className="truncate text-sm font-medium text-sv-dark">{propuesta.profesional_telefono}</p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <a href={`tel:${propuesta.profesional_telefono}`} className="rounded-lg border border-ink-200 px-3 py-1 text-[11px] font-semibold text-sv-dark hover:bg-ink-50 transition">
+                Llamar
+              </a>
+              {waLink && (
+                <a href={waLink} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#25D366] px-3 py-1 text-[11px] font-semibold text-white hover:bg-[#1ebe5d] transition">
+                  WhatsApp
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+        {propuesta.profesional_email && (
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">Email</p>
+              <p className="truncate text-sm font-medium text-sv-dark">{propuesta.profesional_email}</p>
+            </div>
+          </div>
+        )}
+        {propuesta.profesional_zona && (
+          <div className="px-4 py-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">Zona</p>
+            <p className="text-sm font-medium text-sv-dark">{propuesta.profesional_zona} · zona de trabajo</p>
+          </div>
+        )}
+      </div>
+
+      {/* Aviso importante */}
+      <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-amber-800">
+          ⚠️ Importante
+        </p>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-900">
+          <strong>{nombre.split(" ")[0]}</strong> te enviará un código de 4 dígitos por WhatsApp. Es importante que ese código se lo envíes a este número para que el pago se efectúe con certeza:
+        </p>
+        <a
+          href="https://wa.me/541157980934"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex items-center justify-between rounded-lg border border-amber-300 bg-white px-3 py-2.5"
+        >
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700">WhatsApp SolvIT</p>
+            <p className="mt-0.5 font-semibold text-amber-900">+54 11 5798 0934</p>
+          </div>
+          <span className="rounded-lg bg-[#25D366] px-3 py-1 text-[11px] font-semibold text-white">
+            Abrir chat
+          </span>
+        </a>
+      </div>
+
+      {waLink && (
+        <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn-primary mt-3 block w-full text-center text-sm">
+          WhatsApp a {nombre.split(" ")[0]}
+        </a>
+      )}
+    </div>
+  );
+}
+
+// ─── MiConsultaCard ───────────────────────────────────────────────────────────
+function MiConsultaCard({
+  pub,
+  expanded,
+  onToggle,
+  onAceptar,
+}: {
+  pub: Publicacion;
+  expanded: boolean;
+  onToggle: () => void;
+  onAceptar: (p: Propuesta, pub: Publicacion) => void;
+}) {
+  const cat = CATEGORIES.find((c) => c.slug === pub.category_slug);
+  const pendingCount = pub.propuestas.filter(
+    (p) => !p.estado || p.estado === "pendiente"
+  ).length;
+  const propuestaAceptada = pub.propuestas.find((p) => p.estado === "aceptada") ?? null;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[0_1px_2px_rgba(40,63,59,0.04)]">
+      <div className="flex gap-4 p-5">
+        <CatThumb slug={pub.category_slug} />
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <StatusPill status={pub.status} />
+            <span className="text-[11.5px] text-ink-400">
+              {cat?.name} · {pub.zone} · {new Date(pub.created_at).toLocaleDateString("es-AR")}
+            </span>
+          </div>
+
+          <h3 className="display mt-1 text-[17px] leading-snug text-sv-dark">
+            {pub.title}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-sm text-ink-400">{pub.description}</p>
+        </div>
+
+        {pub.status === "abierto" && pendingCount > 0 && (
+          <button
+            type="button"
+            onClick={onToggle}
+            className={`shrink-0 self-center rounded-xl px-4 py-2.5 text-[12.5px] font-semibold transition whitespace-nowrap ${
+              expanded
+                ? "border border-ink-200 bg-ink-50 text-sv-dark"
+                : "bg-sv-dark text-white hover:bg-sv-olive"
+            }`}
+          >
+            {expanded ? "Ocultar" : `Ver ${pendingCount} propuesta${pendingCount !== 1 ? "s" : ""}`}
+          </button>
+        )}
+
+        {pub.status === "abierto" && pendingCount === 0 && pub.propuestas.length > 0 && (
+          <span className="shrink-0 self-center text-xs text-ink-400">Sin nuevas</span>
+        )}
+      </div>
+
+      {/* Datos del profesional — solo cuando la consulta está cerrada */}
+      {pub.status === "cerrado" && propuestaAceptada && (
+        <ProfesionalContacto propuesta={propuestaAceptada} />
+      )}
+
+      {expanded && pub.status === "abierto" && (
+        <div className="border-t border-ink-100 px-5 pb-5 pt-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h4 className="font-display text-sm font-semibold text-sv-dark">
+              {pub.propuestas.length} propuesta{pub.propuestas.length !== 1 ? "s" : ""} recibidas
+            </h4>
+            <span className="text-[11px] text-ink-400">Ordenadas por precio</span>
+          </div>
+          <div className="space-y-2">
+            {[...pub.propuestas]
+              .sort((a, b) => Number(a.precio) - Number(b.precio))
+              .map((prop) => (
+                <PropuestaRow
+                  key={prop.id}
+                  propuesta={prop}
+                  publicacion={pub}
+                  onAceptar={onAceptar}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── StatCell ─────────────────────────────────────────────────────────────────
+function statBorder(i: number) {
+  const cls: string[] = ["border-ink-100"];
+  if (i % 2 === 1) cls.push("border-l");
+  if (i >= 2) cls.push("border-t", "sm:border-t-0");
+  if (i > 0) cls.push("sm:border-l");
+  return cls.join(" ");
+}
+
+// ─── DemandanteView ───────────────────────────────────────────────────────────
+export function DemandanteView({
+  publicaciones,
+  nombre,
+  apellido,
+  email,
+}: {
+  publicaciones: Publicacion[];
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+}) {
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>("abierto");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [pagoInfo, setPagoInfo] = useState<{ propuesta: Propuesta; publicacion: Publicacion } | null>(null);
+
+  function handleAceptar(propuesta: Propuesta, publicacion: Publicacion) {
+    setPagoInfo({ propuesta, publicacion });
+  }
+
+  function handleCerrarModal() {
+    setPagoInfo(null);
+    setTab("cerrado");
+    router.refresh();
+  }
+
+  const displayName = [nombre, apellido].filter(Boolean).join(" ") || email || "Usuario";
+  const initials =
+    nombre && apellido
+      ? `${nombre[0]}${apellido[0]}`.toUpperCase()
+      : nombre
+      ? nombre.slice(0, 2).toUpperCase()
+      : "U";
+
+  const totalPropuestas = publicaciones.reduce((s, p) => s + p.propuestas.length, 0);
+
+  const stats = [
+    { value: publicaciones.filter((p) => p.status === "abierto").length, label: "Consultas activas", accent: true },
+    { value: publicaciones.filter((p) => p.status === "cerrado").length, label: "Resueltas", accent: false },
+    { value: totalPropuestas, label: "Propuestas recibidas", accent: false },
+    { value: publicaciones.filter((p) => p.propuestas.some((pr) => pr.estado === "aceptada")).length, label: "Con profesional", accent: false },
+  ];
+
+  const tabs: { id: Tab; label: string; count: number }[] = [
+    { id: "abierto",  label: "Activas",  count: publicaciones.filter((p) => p.status === "abierto").length },
+    { id: "cerrado",  label: "Cerradas", count: publicaciones.filter((p) => p.status === "cerrado").length },
+  ];
+
+  const filtered = publicaciones.filter((p) => p.status === tab);
+
+  if (publicaciones.length === 0) {
+    return (
+      <div className="card p-10 text-center">
+        <div className="text-4xl">📋</div>
+        <h3 className="display mt-3 text-2xl">Todavía no publicaste nada</h3>
+        <p className="mt-2 text-ink-400">
+          Cuando publiques un problema, lo vas a ver acá junto con las propuestas que recibas.
+        </p>
+        <Link href="/publicar" className="btn-primary mt-6">
+          Publicar mi primer problema
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <>
+    <div className="space-y-5">
+      {/* Profile header */}
+      <div className="flex items-center gap-5 rounded-2xl border border-ink-100 bg-white p-6 shadow-[0_1px_2px_rgba(40,63,59,0.04)]">
+        <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sv-dark to-sv-primary font-display text-3xl font-semibold text-white">
+          {initials}
+        </span>
+        <div className="min-w-0">
+          <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
+            <h1 className="display text-2xl">{displayName}</h1>
+            <span className="rounded-full bg-zap-100 px-2.5 py-1 text-[11.5px] font-semibold text-zap-700">
+              Demandante
+            </span>
+          </div>
+          {email && <p className="text-sm text-ink-400">✉ {email}</p>}
+        </div>
+      </div>
+
+      {/* Stat strip */}
+      <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-ink-100 bg-white sm:grid-cols-4">
+        {stats.map((s, i) => (
+          <div key={s.label} className={`p-5 ${statBorder(i)}`}>
+            <div
+              className={`font-display text-[26px] leading-none tracking-tight sm:text-[28px] ${
+                s.accent ? "text-sv-primary" : "text-sv-dark"
+              }`}
+            >
+              {s.value}
+            </div>
+            <div className="mt-1.5 text-xs text-ink-400">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Section */}
+      <div>
+        <h2 className="display mb-3.5 text-xl sm:text-[22px]">Mis consultas</h2>
+
+        {/* Tab bar */}
+        <div className="flex border-b border-ink-100">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className={`mr-5 inline-flex items-center gap-2 border-b-2 pb-3 text-sm font-semibold transition ${
+                tab === t.id
+                  ? "border-sv-primary text-sv-dark"
+                  : "border-transparent text-ink-400 hover:text-sv-dark"
+              }`}
+            >
+              {t.label}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+                  tab === t.id ? "bg-sv-primary text-white" : "bg-ink-100 text-ink-400"
+                }`}
+              >
+                {t.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {filtered.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-ink-200 p-12 text-center">
+              <div className="text-3xl opacity-60">📭</div>
+              <h4 className="display mt-2.5 text-base">Nada por acá</h4>
+              <p className="mt-1 text-sm text-ink-400">No tenés consultas en este estado.</p>
+            </div>
+          ) : (
+            filtered.map((pub) => (
+              <MiConsultaCard
+                key={pub.id}
+                pub={pub}
+                expanded={expandedId === pub.id}
+                onToggle={() =>
+                  setExpandedId(expandedId === pub.id ? null : pub.id)
+                }
+                onAceptar={handleAceptar}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+
+    {pagoInfo && (
+      <AceptarModal
+        propuesta={pagoInfo.propuesta as PropuestaParaPago}
+        publicacion={pagoInfo.publicacion as PublicacionParaPago}
+        onClose={() => setPagoInfo(null)}
+        onPagoExitoso={handleCerrarModal}
+      />
+    )}
+  </>
+  );
+}

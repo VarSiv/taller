@@ -29,6 +29,7 @@ export default async function HomePage({
   const { data: dbJobs } = await supabase
     .from("publicaciones")
     .select("*")
+    .neq("status", "cerrado")
     .order("created_at", { ascending: false });
 
   // Convertir al formato interno para filtrar igual que los estáticos
