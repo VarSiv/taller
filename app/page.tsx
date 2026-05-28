@@ -3,8 +3,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FilterDropdown } from "@/components/FilterDropdown";
 import { MarketplaceGrid } from "@/components/MarketplaceGrid";
-import { CATEGORIES, POSTED_JOBS, ZONES, type PostedJob } from "@/lib/data";
-import { supabase, type Publicacion } from "@/lib/supabase";
+import { CATEGORIES, ZONES, type PostedJob } from "@/lib/data";
+import { type Publicacion } from "@/lib/supabase";
 import { createSupabaseServer } from "@/lib/supabase-server";
 
 export const revalidate = 0; // siempre datos frescos
@@ -26,7 +26,7 @@ export default async function HomePage({
   const sinSesion = !user;
 
   // Publicaciones de Supabase
-  const { data: dbJobs } = await supabase
+  const { data: dbJobs } = await supabaseServer
     .from("publicaciones")
     .select("*")
     .neq("status", "cerrado")
@@ -40,7 +40,8 @@ export default async function HomePage({
     categorySlug: p.category_slug,
     zone: p.zone,
     urgency: p.urgency as PostedJob["urgency"],
-    photo: p.photo ?? "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&w=800&q=60",
+    photo: p.photo ?? null,
+    photos: p.photos ?? [],
     postedBy: p.posted_by,
     postedAgo: "reciente",
     budget: { min: 0, max: 0 },
@@ -48,8 +49,7 @@ export default async function HomePage({
     status: p.status as PostedJob["status"],
   }));
 
-  // Mezclar: primero los de Supabase, luego los estáticos
-  const allJobs = [...supabaseJobs, ...POSTED_JOBS];
+  const allJobs = supabaseJobs;
 
   const filtered = allJobs.filter((j) => {
     if (cat && j.categorySlug !== cat) return false;
@@ -60,6 +60,17 @@ export default async function HomePage({
     }
     return true;
   });
+
+  // IDs de publicaciones donde el profesional ya tiene propuesta pendiente
+  let yaContactadoIds: string[] = [];
+  if (esProfesional && user) {
+    const { data: propsPendientes } = await supabaseServer
+      .from("propuestas")
+      .select("publicacion_id")
+      .eq("profesional_id", user.id)
+      .eq("estado", "pendiente");
+    yaContactadoIds = (propsPendientes ?? []).map((p: { publicacion_id: string }) => p.publicacion_id);
+  }
 
   const activeCount = (cat ? 1 : 0) + (zona ? 1 : 0);
   const supabaseJobIds = supabaseJobs.map((j) => j.id);
@@ -90,6 +101,7 @@ export default async function HomePage({
               supabaseJobIds={supabaseJobIds}
               esProfesional={esProfesional}
               sinSesion={sinSesion}
+              yaContactadoIds={yaContactadoIds}
             />
           </div>
         </section>

@@ -15,6 +15,7 @@ export type Publicacion = {
   zone: string;
   urgency: string;
   photo: string | null;
+  photos: string[];
   posted_by: string;
   status: string;
 };

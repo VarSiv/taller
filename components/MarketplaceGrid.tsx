@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { PostedJob } from "@/lib/data";
 import { CATEGORIES } from "@/lib/data";
@@ -12,6 +13,7 @@ interface Props {
   supabaseJobIds: string[];
   esProfesional: boolean;
   sinSesion: boolean;
+  yaContactadoIds: string[];
 }
 
 const URGENCY_LABEL: Record<string, string> = {
@@ -26,7 +28,7 @@ const URGENCY_STYLE: Record<string, string> = {
   flexible: "bg-emerald-100/80 text-emerald-700",
 };
 
-export function MarketplaceGrid({ jobs, supabaseJobIds, esProfesional, sinSesion }: Props) {
+export function MarketplaceGrid({ jobs, supabaseJobIds, esProfesional, sinSesion, yaContactadoIds }: Props) {
   const [selected, setSelected] = useState<PostedJob | null>(null);
 
   if (jobs.length === 0) {
@@ -49,9 +51,13 @@ export function MarketplaceGrid({ jobs, supabaseJobIds, esProfesional, sinSesion
         {!esProfesional && (
           <Link
             href="/publicar"
-            className="group flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-sv-primary/40 bg-gradient-to-b from-zap-50 to-white p-6 text-center transition hover:border-sv-primary hover:shadow-md"
+            className="animate-card group flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-sv-primary/40 bg-gradient-to-b from-zap-50 to-white p-6 text-center"
+            style={{ animationDelay: "0ms", transition: "border-color 200ms ease-out, box-shadow 200ms ease-out" }}
           >
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sv-primary/10 text-2xl transition group-hover:bg-sv-primary/20">
+            <span
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sv-primary/10 text-2xl"
+              style={{ transition: "background-color 200ms ease-out, transform 160ms ease-out" }}
+            >
               +
             </span>
             <div>
@@ -61,13 +67,15 @@ export function MarketplaceGrid({ jobs, supabaseJobIds, esProfesional, sinSesion
           </Link>
         )}
 
-        {jobs.map((j) => (
+        {jobs.map((j, i) => (
           <JobCard
             key={j.id}
             job={j}
+            index={!esProfesional ? i + 1 : i}
             isNew={supabaseJobIds.includes(j.id)}
             esProfesional={esProfesional}
             sinSesion={sinSesion}
+            yaContactado={yaContactadoIds.includes(j.id)}
             onContactar={() => setSelected(j)}
           />
         ))}
@@ -82,15 +90,19 @@ export function MarketplaceGrid({ jobs, supabaseJobIds, esProfesional, sinSesion
 
 function JobCard({
   job,
+  index,
   isNew,
   esProfesional,
   sinSesion,
+  yaContactado,
   onContactar,
 }: {
   job: PostedJob;
+  index: number;
   isNew: boolean;
   esProfesional: boolean;
   sinSesion: boolean;
+  yaContactado: boolean;
   onContactar: () => void;
 }) {
   const cat = CATEGORIES.find((c) => c.slug === job.categorySlug);
@@ -99,10 +111,21 @@ function JobCard({
   const urgencyStyle = URGENCY_STYLE[job.urgency] ?? "bg-ink-100 text-ink-500";
 
   return (
-    <div className={`card flex flex-col overflow-hidden transition hover:shadow-lg ${isNew ? "ring-2 ring-sv-primary" : ""}`}>
-      {/* CategoryArt header */}
-      <div className="relative h-44 w-full">
-        <CategoryArt icon={cat?.icon ?? "🔧"} hue={hue} className="h-full w-full" />
+    <div
+      className={`animate-card card flex flex-col overflow-hidden ${isNew ? "ring-2 ring-sv-primary" : ""}`}
+      style={{
+        animationDelay: `${Math.min(index * 45, 300)}ms`,
+        transition: "box-shadow 200ms ease-out",
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 30px rgba(14,17,13,0.12)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}
+    >
+      {/* Header: foto real o arte generativo */}
+      <div className="relative h-44 w-full overflow-hidden">
+        {job.photo
+          ? <Image src={job.photo} alt={job.title} fill sizes="(max-width:640px) 100vw,(max-width:1024px) 50vw,25vw" className="object-cover" />
+          : <CategoryArt icon={cat?.icon ?? "🔧"} hue={hue} className="h-full w-full" />
+        }
 
         {/* Category badge — frosted glass */}
         <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-white/40 bg-white/30 px-2.5 py-1 text-xs font-medium text-sv-dark backdrop-blur-md">
@@ -147,10 +170,15 @@ function JobCard({
               Ingresar para contactar
             </Link>
           )}
-          {!sinSesion && esProfesional && (
+          {!sinSesion && esProfesional && !yaContactado && (
             <button type="button" onClick={onContactar} className="btn-primary w-full text-sm">
               Contactar
             </button>
+          )}
+          {!sinSesion && esProfesional && yaContactado && (
+            <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-700">
+              Propuesta enviada · esperando respuesta
+            </div>
           )}
         </div>
       </div>

@@ -20,7 +20,7 @@ export function UserJobs() {
         <div key={job.id} className="card overflow-hidden ring-2 ring-sv-primary">
           <div className="relative h-44 w-full bg-ink-100">
             <Image
-              src={job.photo}
+              src={job.photo ?? ""}
               alt={job.title}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

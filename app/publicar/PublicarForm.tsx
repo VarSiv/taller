@@ -33,6 +33,7 @@ function PublicarInner() {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [zone, setZone] = useState("");
   const [urgency, setUrgency] = useState("hoy");
   const [submitError, setSubmitError] = useState("");
@@ -59,6 +60,7 @@ function PublicarInner() {
       zone,
       urgency,
       photo: photos[0] ?? null,
+      photos: photos,
       posted_by: nombre ?? "Anónimo",
       user_id: user?.id ?? null,
       status: "abierto",
@@ -151,7 +153,14 @@ function PublicarInner() {
               {step === 1 && (
                 <StepDetalle title={title} desc={desc} onTitle={setTitle} onDesc={setDesc} />
               )}
-              {step === 2 && <StepFotos photos={photos} setPhotos={setPhotos} />}
+              {step === 2 && (
+                <StepFotos
+                  photos={photos}
+                  setPhotos={setPhotos}
+                  uploading={uploadingPhotos}
+                  setUploading={setUploadingPhotos}
+                />
+              )}
               {step === 3 && (
                 <StepZona zone={zone} urgency={urgency} onZone={setZone} onUrgency={setUrgency} />
               )}
@@ -178,7 +187,7 @@ function PublicarInner() {
                 ← Volver
               </button>
               {step < STEPS.length - 1 ? (
-                <button onClick={next} disabled={!canContinue} className="btn-primary disabled:opacity-50">
+                <button onClick={next} disabled={!canContinue || uploadingPhotos} className="btn-primary disabled:opacity-50">
                   Continuar
                 </button>
               ) : (
@@ -273,17 +282,54 @@ function StepDetalle({
   );
 }
 
-function StepFotos({ photos, setPhotos }: { photos: string[]; setPhotos: (p: string[]) => void }) {
-  const sample = [
-    "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=400&q=60",
-    "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=400&q=60",
-    "https://images.unsplash.com/photo-1585129777188-c79e9f190c0c?auto=format&fit=crop&w=400&q=60",
-  ];
+function StepFotos({
+  photos,
+  setPhotos,
+  uploading,
+  setUploading,
+}: {
+  photos: string[];
+  setPhotos: (p: string[]) => void;
+  uploading: boolean;
+  setUploading: (v: boolean) => void;
+}) {
+  const [uploadError, setUploadError] = useState("");
 
-  function addSample(i: number) {
-    if (photos.length >= 5) return;
-    setPhotos([...photos, sample[i % sample.length]]);
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const remaining = 5 - photos.length;
+    if (remaining <= 0) return;
+
+    setUploadError("");
+    setUploading(true);
+
+    const toUpload = Array.from(files).slice(0, remaining);
+    const newUrls: string[] = [];
+
+    for (const file of toUpload) {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from("fotos-publicaciones")
+        .upload(path, file, { upsert: false });
+
+      if (error) {
+        setUploadError(`Error al subir ${file.name}: ${error.message}`);
+        break;
+      }
+
+      const { data } = supabase.storage
+        .from("fotos-publicaciones")
+        .getPublicUrl(path);
+
+      newUrls.push(data.publicUrl);
+    }
+
+    setPhotos([...photos, ...newUrls]);
+    setUploading(false);
   }
+
   function remove(idx: number) {
     setPhotos(photos.filter((_, i) => i !== idx));
   }
@@ -291,11 +337,13 @@ function StepFotos({ photos, setPhotos }: { photos: string[]; setPhotos: (p: str
   return (
     <div>
       <p className="text-ink-400">Las fotos son opcionales pero recomendadas. 2–3 buenas fotos aceleran todo.</p>
+
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos.map((src, i) => (
           <div key={i} className="group relative aspect-square overflow-hidden rounded-xl bg-ink-100">
             <Image src={src} alt="" fill sizes="200px" className="object-cover" />
             <button
+              type="button"
               onClick={() => remove(i)}
               className="absolute right-2 top-2 rounded-full bg-sv-dark px-2 py-0.5 text-[11px] text-white opacity-0 transition group-hover:opacity-100"
             >
@@ -303,19 +351,41 @@ function StepFotos({ photos, setPhotos }: { photos: string[]; setPhotos: (p: str
             </button>
           </div>
         ))}
-        {photos.length < 5 && (
-          <button
-            onClick={() => addSample(photos.length)}
-            className="flex aspect-square items-center justify-center rounded-xl border-2 border-dashed border-zap-200 text-center hover:border-sv-primary"
-          >
+
+        {uploading && (
+          <div className="flex aspect-square items-center justify-center rounded-xl border-2 border-dashed border-sv-primary bg-zap-50">
+            <div className="text-center">
+              <div className="text-2xl animate-spin">⏳</div>
+              <div className="mt-2 text-xs text-ink-400">Subiendo…</div>
+            </div>
+          </div>
+        )}
+
+        {!uploading && photos.length < 5 && (
+          <label className="flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-zap-200 text-center transition hover:border-sv-primary hover:bg-zap-50">
             <div>
               <div className="text-3xl">📷</div>
               <div className="mt-2 text-xs text-ink-400">Agregar foto</div>
-              <div className="text-[10px] text-ink-300">(demo)</div>
+              <div className="text-[10px] text-ink-300">desde tu dispositivo</div>
             </div>
-          </button>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+          </label>
         )}
       </div>
+
+      {uploadError && (
+        <p className="mt-3 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{uploadError}</p>
+      )}
+
+      <p className="mt-4 text-xs text-ink-400">
+        Máximo 5 fotos · JPG, PNG, WEBP · hasta 10 MB por foto
+      </p>
     </div>
   );
 }

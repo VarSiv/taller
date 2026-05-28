@@ -2,11 +2,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { PostedJobCard } from "@/components/PostedJobCard";
-import { POSTED_JOBS, PROS, formatARS } from "@/lib/data";
+import { PROS, formatARS } from "@/lib/data";
+import { createSupabaseServer } from "@/lib/supabase-server";
+import { type Publicacion } from "@/lib/supabase";
 
-export default function MisPublicacionesPage() {
-  const myJob = POSTED_JOBS[0];
+export const revalidate = 0;
+
+export default async function MisPublicacionesPage() {
+  const supabase = await createSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: misPublicaciones } = user
+    ? await supabase
+        .from("publicaciones")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+    : { data: [] as Publicacion[] };
+
+  const myJob = (misPublicaciones ?? [])[0] ?? null;
+
   const offers = PROS.slice(0, 3).map((p, i) => ({
     pro: p,
     amount: [32500, 38000, 45000][i],
@@ -48,6 +63,14 @@ export default function MisPublicacionesPage() {
           </button>
         </div>
 
+        {!myJob ? (
+          <div className="mt-8 card p-10 text-center">
+            <p className="text-ink-500">Todavía no tenés publicaciones activas.</p>
+            <Link href="/publicar" className="btn-primary mt-4 inline-block">
+              Publicar mi primer problema
+            </Link>
+          </div>
+        ) : (
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr,360px]">
           {/* Detail of current job */}
           <div>
@@ -58,34 +81,24 @@ export default function MisPublicacionesPage() {
                     Recibiendo ofertas
                   </span>
                   <span className="pill bg-ink-50 text-ink-700">
-                    🔧 Plomería · Palermo
-                  </span>
-                  <span className="pill bg-ink-50 text-ink-700">
-                    Publicado hace 12 min
+                    {myJob.zone}
                   </span>
                 </div>
                 <h2 className="display mt-3 text-2xl">{myJob.title}</h2>
                 <p className="mt-2 text-sm text-ink-700">{myJob.description}</p>
 
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {[
-                    "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=400&q=60",
-                    "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=400&q=60",
-                    "https://images.unsplash.com/photo-1585129777188-c79e9f190c0c?auto=format&fit=crop&w=400&q=60",
-                  ].map((src) => (
-                    <div
-                      key={src}
-                      className="relative aspect-square overflow-hidden rounded-xl bg-ink-100"
-                    >
-                      <Image src={src} alt="" fill sizes="200px" className="object-cover" />
+                {myJob.photo && (
+                  <div className="mt-4">
+                    <div className="relative aspect-video overflow-hidden rounded-xl bg-ink-100">
+                      <Image src={myJob.photo} alt="" fill sizes="600px" className="object-cover" />
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
               <div className="border-t border-ink-100 bg-ink-50 p-4 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-ink-700">
-                    Rango: {formatARS(myJob.budget.min)} – {formatARS(myJob.budget.max)}
+                    Urgencia: {myJob.urgency === "hoy" ? "Hoy mismo" : myJob.urgency === "esta_semana" ? "Esta semana" : "Flexible"}
                   </span>
                   <div className="flex gap-2">
                     <button className="btn-ghost text-xs">Editar</button>
@@ -205,6 +218,7 @@ export default function MisPublicacionesPage() {
             </div>
           </aside>
         </div>
+        )}
       </main>
       <Footer />
     </>

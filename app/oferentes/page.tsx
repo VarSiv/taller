@@ -3,9 +3,36 @@ import Image from "next/image";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PostedJobCard } from "@/components/PostedJobCard";
-import { POSTED_JOBS } from "@/lib/data";
+import { type PostedJob } from "@/lib/data";
+import { createSupabaseServer } from "@/lib/supabase-server";
+import { type Publicacion } from "@/lib/supabase";
 
-export default function OferentesPage() {
+export const revalidate = 0;
+
+export default async function OferentesPage() {
+  const supabase = await createSupabaseServer();
+  const { data: dbJobs } = await supabase
+    .from("publicaciones")
+    .select("*")
+    .neq("status", "cerrado")
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  const liveJobs: PostedJob[] = (dbJobs ?? []).map((p: Publicacion) => ({
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    categorySlug: p.category_slug,
+    zone: p.zone,
+    urgency: p.urgency as PostedJob["urgency"],
+    photo: p.photo ?? null,
+    photos: p.photos ?? [],
+    postedBy: p.posted_by,
+    postedAgo: "reciente",
+    budget: { min: 0, max: 0 },
+    bidsCount: 0,
+    status: p.status as PostedJob["status"],
+  }));
   return (
     <>
       <Header />
@@ -95,11 +122,15 @@ export default function OferentesPage() {
                 </p>
               </div>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {POSTED_JOBS.map((j) => (
-                <PostedJobCard key={j.id} job={j} />
-              ))}
-            </div>
+            {liveJobs.length === 0 ? (
+              <p className="text-ink-500">No hay pedidos activos en este momento.</p>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+                {liveJobs.map((j) => (
+                  <PostedJobCard key={j.id} job={j} />
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

@@ -26,7 +26,7 @@ export function PostedJobCard({ job }: { job: PostedJob }) {
       <div className="flex gap-4">
         <div className="relative h-20 w-20 flex-none overflow-hidden rounded-xl bg-ink-100">
           <Image
-            src={job.photo}
+            src={job.photo ?? ""}
             alt={job.title}
             fill
             sizes="80px"
