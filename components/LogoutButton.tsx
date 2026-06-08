@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export function LogoutButton() {
+export function LogoutButton({ dark = false }: { dark?: boolean }) {
   const router = useRouter();
 
   async function handleLogout() {
@@ -15,7 +15,11 @@ export function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="text-sm text-zap-200 hover:text-white transition-colors"
+      className={`text-sm transition-colors ${
+        dark
+          ? "text-zap-300/70 hover:text-white"
+          : "text-ink-400 hover:text-sv-dark"
+      }`}
     >
       Salir
     </button>

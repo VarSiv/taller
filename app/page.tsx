@@ -83,20 +83,51 @@ export default async function HomePage({
   return (
     <>
       <Header />
-      <main>
+      <main className={`overflow-x-hidden ${esProfesional ? "bg-[#0e1a17]" : ""}`}>
+
+        {/* Hero — solo para visitantes sin sesión */}
+        {sinSesion && (
+          <section className="border-b border-ink-100/60 bg-white py-14 sm:py-20 lg:py-28">
+            <div className="container-pad">
+              <div className="mx-auto max-w-2xl text-center">
+                <h1 className="display text-4xl leading-[1.12] text-sv-dark sm:text-5xl lg:text-6xl">
+                  Tu problema<br />tiene solución.
+                </h1>
+                <p className="mt-4 text-base leading-relaxed text-ink-500 sm:text-lg lg:text-xl">
+                  Describí lo que necesitás. Técnicos certificados te mandan
+                  presupuesto en minutos, sin cargos hasta que aceptes.
+                </p>
+                <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center">
+                  <Link href="/publicar" className="btn-primary w-full py-4 text-base sm:w-auto sm:px-10">
+                    Publicar mi problema
+                  </Link>
+                  <Link href="/registrar" className="btn-ghost w-full py-4 text-base text-ink-500 sm:w-auto sm:px-10">
+                    Soy técnico, quiero trabajar →
+                  </Link>
+                </div>
+                <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-ink-400">
+                  <span>✓ Sin cargo hasta aceptar</span>
+                  <span>✓ Técnicos verificados</span>
+                  <span>✓ Respuesta en minutos</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="min-h-screen py-10">
           <div className="container-pad">
 
             {/* Intro */}
             <div className="mb-8">
-              <div className="flex items-center gap-2 text-xs text-ink-400">
+              <div className={`flex items-center gap-2 text-xs ${esProfesional ? "text-zap-500" : "text-ink-400"}`}>
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sv-primary" />
                 <span className="font-medium uppercase tracking-widest">En vivo</span>
               </div>
-              <h1 className="display mt-1.5 text-3xl text-sv-dark md:text-4xl">
+              <h1 className={`display mt-1.5 text-3xl md:text-4xl ${esProfesional ? "text-white" : "text-sv-dark"}`}>
                 Consultas activas
               </h1>
-              <p className="mt-1 text-sm text-ink-400">
+              <p className={`mt-1 text-sm ${esProfesional ? "text-zap-400" : "text-ink-400"}`}>
                 {allJobs.length === 0
                   ? "Todavía no hay consultas publicadas."
                   : `${allJobs.length} ${allJobs.length === 1 ? "problema esperando un técnico" : "problemas esperando un técnico"}`}

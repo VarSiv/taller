@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { CATEGORIES } from "@/lib/data";
 import { CategoryArt } from "@/components/CategoryArt";
 import { rechazarPropuesta } from "./actions";
@@ -30,6 +31,8 @@ type Publicacion = {
   zone: string;
   status: string;
   created_at: string;
+  photo: string | null;
+  photos: string[];
   propuestas: Propuesta[];
 };
 
@@ -54,9 +57,16 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-// ─── CatThumb ─────────────────────────────────────────────────────────────────
-function CatThumb({ slug }: { slug: string }) {
+// ─── ConsultaThumb ────────────────────────────────────────────────────────────
+function ConsultaThumb({ slug, photo }: { slug: string; photo: string | null }) {
   const cat = CATEGORIES.find((c) => c.slug === slug);
+  if (photo) {
+    return (
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
+        <Image src={photo} alt="" fill sizes="64px" className="object-cover" />
+      </div>
+    );
+  }
   return (
     <CategoryArt
       icon={cat?.icon ?? "🔧"}
@@ -254,41 +264,48 @@ function MiConsultaCard({
   ).length;
   const propuestaAceptada = pub.propuestas.find((p) => p.estado === "aceptada") ?? null;
 
+  const toggleBtn = pub.status === "abierto" && pendingCount > 0 ? (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`rounded-xl px-4 py-2.5 text-[12.5px] font-semibold transition whitespace-nowrap ${
+        expanded
+          ? "border border-ink-200 bg-ink-50 text-sv-dark"
+          : "bg-sv-dark text-white hover:bg-sv-olive"
+      }`}
+    >
+      {expanded ? "Ocultar" : `Ver ${pendingCount} propuesta${pendingCount !== 1 ? "s" : ""}`}
+    </button>
+  ) : null;
+
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[0_1px_2px_rgba(40,63,59,0.04)]">
       <div className="flex gap-4 p-5">
-        <CatThumb slug={pub.category_slug} />
+        <ConsultaThumb slug={pub.category_slug} photo={pub.photo ?? null} />
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <StatusPill status={pub.status} />
-            <span className="text-[11.5px] text-ink-400">
-              {cat?.name} · {pub.zone} · {new Date(pub.created_at).toLocaleDateString("es-AR")}
-            </span>
+        <div className="flex flex-1 min-w-0 flex-col gap-2.5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <StatusPill status={pub.status} />
+              <span className="text-[11.5px] text-ink-400">
+                {cat?.name} · {pub.zone} · {new Date(pub.created_at).toLocaleDateString("es-AR")}
+              </span>
+            </div>
+            <h3 className="display mt-1 text-[17px] leading-snug text-sv-dark">
+              {pub.title}
+            </h3>
+            <p className="mt-1 line-clamp-2 text-sm text-ink-400">{pub.description}</p>
           </div>
 
-          <h3 className="display mt-1 text-[17px] leading-snug text-sv-dark">
-            {pub.title}
-          </h3>
-          <p className="mt-1 line-clamp-2 text-sm text-ink-400">{pub.description}</p>
+          {/* Botón full-width en mobile */}
+          {toggleBtn && <div className="sm:hidden w-full">{toggleBtn}</div>}
         </div>
 
-        {pub.status === "abierto" && pendingCount > 0 && (
-          <button
-            type="button"
-            onClick={onToggle}
-            className={`shrink-0 self-center rounded-xl px-4 py-2.5 text-[12.5px] font-semibold transition whitespace-nowrap ${
-              expanded
-                ? "border border-ink-200 bg-ink-50 text-sv-dark"
-                : "bg-sv-dark text-white hover:bg-sv-olive"
-            }`}
-          >
-            {expanded ? "Ocultar" : `Ver ${pendingCount} propuesta${pendingCount !== 1 ? "s" : ""}`}
-          </button>
-        )}
+        {/* Botón inline solo en sm+ */}
+        {toggleBtn && <div className="hidden sm:flex shrink-0 self-center">{toggleBtn}</div>}
 
         {pub.status === "abierto" && pendingCount === 0 && pub.propuestas.length > 0 && (
-          <span className="shrink-0 self-center text-xs text-ink-400">Sin nuevas</span>
+          <span className="hidden sm:flex shrink-0 self-center text-xs text-ink-400">Sin nuevas</span>
         )}
       </div>
 

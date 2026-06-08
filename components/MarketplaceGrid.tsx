@@ -47,10 +47,10 @@ export function MarketplaceGrid({
 
   if (jobs.length === 0 && misJobs.length === 0) {
     return (
-      <div className="card p-10 text-center">
+      <div className={`rounded-2xl border p-10 text-center ${esProfesional ? "border-white/10 bg-[#162420]" : "card"}`}>
         <div className="text-2xl">🤷</div>
-        <h3 className="display mt-2 text-2xl">Sin resultados</h3>
-        <p className="mt-2 text-ink-400">Probá con otro filtro o publicá tu problema directo.</p>
+        <h3 className={`display mt-2 text-2xl ${esProfesional ? "text-zap-50" : "text-sv-dark"}`}>Sin resultados</h3>
+        <p className={`mt-2 ${esProfesional ? "text-zap-400" : "text-ink-400"}`}>Probá con otro filtro o publicá tu problema directo.</p>
         <Link href="/publicar" className="btn-primary mt-6 inline-block">
           Publicar mi problema
         </Link>
@@ -64,7 +64,7 @@ export function MarketplaceGrid({
       <>
         {/* Sección: mis consultas */}
         <div className="mb-3">
-          <h2 className="text-base font-semibold text-sv-dark">
+          <h2 className="text-lg font-semibold text-sv-dark">
             Mis consultas
             {misJobs.length > 0 && (
               <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
@@ -72,7 +72,7 @@ export function MarketplaceGrid({
               </span>
             )}
           </h2>
-          <p className="text-xs text-ink-400">
+          <p className="text-sm text-ink-400">
             {misJobs.length === 0
               ? "Todavía no publicaste ningún problema."
               : "Los técnicos que te mandaron propuesta están esperando tu respuesta."}
@@ -201,15 +201,26 @@ function JobCard({
   const urgencyLabel = URGENCY_LABEL[job.urgency] ?? job.urgency;
   const urgencyStyle = URGENCY_STYLE[job.urgency] ?? "bg-ink-100 text-ink-500";
 
-  const cardBorder = esMio
-    ? "border-l-4 border-l-amber-400 ring-1 ring-amber-200"
-    : "border-ink-100";
+  const cardBase = esProfesional
+    ? [
+        "animate-card flex flex-col overflow-hidden rounded-2xl border",
+        esMio ? "border-l-4 border-l-amber-400 border-white/10 bg-[#162420]" : "border-white/10 bg-[#162420]",
+      ].join(" ")
+    : [
+        "animate-card card flex flex-col overflow-hidden",
+        esMio ? "border-l-4 border-l-amber-400 ring-1 ring-amber-200" : "border-ink-100",
+        !esMio && !sinSesion ? "opacity-90" : "",
+      ].join(" ");
+
+  const shadowHover = esProfesional
+    ? "0 8px 30px rgba(0,0,0,0.40)"
+    : "0 8px 30px rgba(14,17,13,0.10)";
 
   return (
     <div
-      className={`animate-card card flex flex-col overflow-hidden ${cardBorder} ${!esMio && !esProfesional && !sinSesion ? "opacity-90" : ""}`}
+      className={cardBase}
       style={{ animationDelay: `${Math.min(index * 45, 300)}ms`, transition: "box-shadow 200ms ease-out" }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 30px rgba(14,17,13,0.10)"; }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = shadowHover; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}
     >
       {/* Header: foto real o arte generativo */}
@@ -231,7 +242,7 @@ function JobCard({
 
         {/* Badge "Mi consulta" */}
         {esMio && (
-          <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+          <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-semibold text-white">
             <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
             Mi consulta
           </span>
@@ -240,18 +251,20 @@ function JobCard({
 
       {/* Cuerpo */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="display line-clamp-2 text-[15px] leading-snug text-sv-dark">
+        <h3 className={`display line-clamp-2 text-[17px] leading-snug ${esProfesional ? "text-zap-50" : "text-sv-dark"}`}>
           {job.title}
         </h3>
 
-        <p className="mt-1.5 text-xs text-ink-400">
+        <p className={`mt-1.5 text-sm ${esProfesional ? "text-zap-400" : "text-ink-400"}`}>
           {job.postedBy} · {job.zone} · {job.postedAgo}
         </p>
 
-        <p className="mt-2 line-clamp-2 text-sm text-ink-500">{job.description}</p>
+        <p className={`mt-2 line-clamp-2 text-sm ${esProfesional ? "text-zap-200/70" : "text-ink-500"}`}>
+          {job.description}
+        </p>
 
         <div className="mt-3">
-          <span className="chip text-[11px]">
+          <span className={`chip text-xs ${esProfesional ? "border-white/10 bg-white/5 text-zap-300" : ""}`}>
             💬 {job.bidsCount} propuesta{job.bidsCount !== 1 ? "s" : ""}
           </span>
         </div>
@@ -271,7 +284,7 @@ function JobCard({
             </button>
           )}
           {!sinSesion && esProfesional && yaContactado && (
-            <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-700">
+            <div className="w-full rounded-xl border border-zap-500/30 bg-zap-500/10 px-3 py-2 text-center text-xs font-medium text-zap-300">
               Propuesta enviada · esperando respuesta
             </div>
           )}
@@ -285,7 +298,7 @@ function JobCard({
 
           {/* Demandante — ajena */}
           {!sinSesion && !esProfesional && !esMio && (
-            <p className="text-center text-[11px] text-ink-300">
+            <p className="text-center text-xs text-ink-300">
               Solo técnicos pueden enviar propuestas
             </p>
           )}

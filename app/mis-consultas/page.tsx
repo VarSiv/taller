@@ -49,7 +49,7 @@ async function DemandanteData({
 
   const { data: publicaciones } = await supabase
     .from("publicaciones")
-    .select("id, title, description, category_slug, zone, status, created_at")
+    .select("id, title, description, category_slug, zone, status, created_at, photo, photos")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 

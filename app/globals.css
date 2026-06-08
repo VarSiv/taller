@@ -24,7 +24,7 @@
 
 @layer components {
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sv-primary;
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sv-primary;
     transition: background-color 150ms ease-out, color 150ms ease-out,
       box-shadow 150ms ease-out, transform 160ms ease-out,
       border-color 150ms ease-out;
@@ -38,7 +38,7 @@
   }
   /* Botón CTA destacado: Dark Green */
   .btn-zap {
-    @apply btn bg-sv-dark text-white hover:bg-sv-olive;
+    @apply btn bg-sv-dark text-white hover:bg-brand-950;
   }
   .btn-ghost {
     @apply btn text-sv-dark hover:bg-zap-100;
