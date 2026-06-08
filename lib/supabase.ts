@@ -17,5 +17,6 @@ export type Publicacion = {
   photo: string | null;
   photos: string[];
   posted_by: string;
+  user_id: string | null;
   status: string;
 };

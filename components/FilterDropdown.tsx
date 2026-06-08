@@ -58,7 +58,7 @@ export function FilterDropdown({ categories, zones, cat, zona, q, activeCount }:
           {/* Overlay para cerrar al hacer click afuera */}
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
 
-          <div className="absolute left-0 top-full z-20 mt-2 w-[480px] max-w-[calc(100vw-2rem)] rounded-2xl border border-zap-100 bg-white p-5 shadow-lg">
+          <div className="animate-dropdown absolute left-0 top-full z-20 mt-2 w-[480px] max-w-[calc(100vw-2rem)] rounded-2xl border border-zap-100 bg-white p-5 shadow-lg">
             <div className="grid gap-6 sm:grid-cols-2">
               {/* Categorías */}
               <div>

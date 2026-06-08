@@ -32,6 +32,11 @@ export default async function HomePage({
     .neq("status", "cerrado")
     .order("created_at", { ascending: false });
 
+  // IDs de publicaciones del usuario actual
+  const misPublicacionesIds = user
+    ? (dbJobs ?? []).filter((p: Publicacion) => p.user_id === user.id).map((p: Publicacion) => p.id)
+    : [];
+
   // Convertir al formato interno para filtrar igual que los estáticos
   const supabaseJobs: PostedJob[] = (dbJobs ?? []).map((p: Publicacion) => ({
     id: p.id,
@@ -79,8 +84,24 @@ export default async function HomePage({
     <>
       <Header />
       <main>
-        <section className="py-8">
+        <section className="min-h-screen py-10">
           <div className="container-pad">
+
+            {/* Intro */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 text-xs text-ink-400">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sv-primary" />
+                <span className="font-medium uppercase tracking-widest">En vivo</span>
+              </div>
+              <h1 className="display mt-1.5 text-3xl text-sv-dark md:text-4xl">
+                Consultas activas
+              </h1>
+              <p className="mt-1 text-sm text-ink-400">
+                {allJobs.length === 0
+                  ? "Todavía no hay consultas publicadas."
+                  : `${allJobs.length} ${allJobs.length === 1 ? "problema esperando un técnico" : "problemas esperando un técnico"}`}
+              </p>
+            </div>
 
             <div className="mb-6 flex items-center gap-4">
               <FilterDropdown
@@ -91,9 +112,11 @@ export default async function HomePage({
                 q={q}
                 activeCount={activeCount}
               />
-              <span className="text-sm text-ink-400">
-                {filtered.length} {filtered.length === 1 ? "consulta activa" : "consultas activas"}
-              </span>
+              {(cat || zona || q) && (
+                <span className="text-sm text-ink-400">
+                  {filtered.length} {filtered.length === 1 ? "resultado" : "resultados"}
+                </span>
+              )}
             </div>
 
             <MarketplaceGrid
@@ -102,6 +125,7 @@ export default async function HomePage({
               esProfesional={esProfesional}
               sinSesion={sinSesion}
               yaContactadoIds={yaContactadoIds}
+              misPublicacionesIds={misPublicacionesIds}
             />
           </div>
         </section>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { LogoutButton } from "@/components/LogoutButton";
 
@@ -21,66 +22,61 @@ export async function Header() {
     : user?.email?.split("@")[0] ?? "";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/95 backdrop-blur-md">
-      <div className="container-pad flex h-16 items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-ink-100/80 bg-white/90 backdrop-blur-lg">
+      <div className="container-pad flex h-14 items-center justify-between gap-4">
 
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sv-dark to-sv-primary text-sm font-bold text-white font-display">
-            S
-          </span>
-          <span className="font-display text-lg font-semibold text-sv-dark">
+          <Image src="/logo.png" alt="SolvIT" width={32} height={32} className="h-8 w-8 object-contain" />
+          <span className="font-display text-[17px] font-semibold tracking-tight text-sv-dark">
             Solv<span className="text-sv-primary">IT</span>
           </span>
         </Link>
 
-        {/* Nav + acciones */}
-        <div className="flex items-center gap-1">
+        {/* Nav central */}
+        <nav className="hidden items-center gap-0.5 sm:flex">
           <Link
             href="/"
-            className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50 hover:text-sv-dark sm:inline-flex"
+            className="rounded-lg px-3.5 py-2 text-sm font-medium text-ink-500 transition-colors hover:bg-ink-50 hover:text-sv-dark"
           >
             Marketplace
           </Link>
           <Link
             href="/como-funciona"
-            className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50 hover:text-sv-dark sm:inline-flex"
+            className="rounded-lg px-3.5 py-2 text-sm font-medium text-ink-500 transition-colors hover:bg-ink-50 hover:text-sv-dark"
           >
-            About Us
+            Cómo funciona
           </Link>
+          {user && (
+            <Link
+              href="/mis-consultas"
+              className="rounded-lg px-3.5 py-2 text-sm font-medium text-ink-500 transition-colors hover:bg-ink-50 hover:text-sv-dark"
+            >
+              Mis consultas
+            </Link>
+          )}
+        </nav>
 
-          <div className="mx-2 hidden h-5 w-px bg-ink-200 sm:block" />
-
+        {/* Acciones */}
+        <div className="flex items-center gap-2">
           {user ? (
-            <div className="flex items-center gap-2">
-              <Link
-                href="/mis-consultas"
-                className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50 hover:text-sv-dark sm:inline-flex"
-              >
-                Mis consultas
-              </Link>
-
-              {/* User pill */}
-              <div className="flex items-center gap-2 rounded-full border border-ink-100 bg-ink-50 py-1 pl-1 pr-3">
-                {/* Initials avatar */}
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sv-dark to-sv-primary text-xs font-bold text-white">
+            <>
+              {/* Avatar + nombre + rol */}
+              <div className="flex items-center gap-2.5 rounded-full border border-ink-100 bg-ink-50/60 py-1 pl-1.5 pr-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sv-dark text-[10px] font-bold text-white">
                   {initials}
                 </span>
-                {/* Role badge */}
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                    esProfesional
-                      ? "bg-sv-primary/15 text-sv-olive"
-                      : "bg-zap-100 text-zap-700"
-                  }`}
-                >
-                  {esProfesional ? "Oferente" : "Demandante"}
+                <span className="hidden text-sm font-medium text-sv-dark sm:inline">
+                  {displayName}
                 </span>
-                <span className="hidden text-sm font-medium text-sv-dark sm:inline">{displayName}</span>
+                <span className={`hidden rounded-full px-1.5 py-px text-[10px] font-semibold sm:inline ${
+                  esProfesional ? "bg-sv-primary/15 text-sv-olive" : "bg-amber-100 text-amber-700"
+                }`}>
+                  {esProfesional ? "Técnico" : "Cliente"}
+                </span>
               </div>
-
               <LogoutButton />
-            </div>
+            </>
           ) : (
             <div className="flex items-center gap-2">
               <Link href="/ingresar" className="btn-ghost text-sm">
@@ -92,6 +88,7 @@ export async function Header() {
             </div>
           )}
         </div>
+
       </div>
     </header>
   );
