@@ -21,6 +21,7 @@ type Propuesta = {
   estado: string | null;
   publicacion_id: string;
   created_at: string;
+  descuenta_de_presupuesto: boolean | null;
 };
 
 type Publicacion = {
@@ -101,63 +102,86 @@ function PropuestaRow({
   const isRejected = estado === "rechazada";
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-ink-100 bg-[#f5fdf9] p-3.5 sm:flex-row sm:items-center">
-      {/* Avatar + info */}
-      <div className="flex flex-1 items-center gap-3 min-w-0">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sv-dark to-sv-primary text-xs font-bold text-white">
-          {initials}
-        </span>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-sv-dark">{nombre}</span>
-            {(isAccepted || isRejected) && <StatusPill status={estado} />}
+    <div className="rounded-xl border border-ink-100 bg-[#f5fdf9] p-3.5">
+      {/* Fila principal: avatar + info + precio + acciones */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {/* Avatar + info */}
+        <div className="flex flex-1 items-center gap-3 min-w-0">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sv-dark to-sv-primary text-xs font-bold text-white">
+            {initials}
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-sv-dark">{nombre}</span>
+              {(isAccepted || isRejected) && <StatusPill status={estado} />}
+            </div>
+            <div className="text-[11.5px] text-ink-400">
+              Enviada el {new Date(propuesta.created_at).toLocaleDateString("es-AR")}
+            </div>
           </div>
-          <div className="text-[11.5px] text-ink-400">
-            Enviada el {new Date(propuesta.created_at).toLocaleDateString("es-AR")}
+        </div>
+
+        {/* Price + actions */}
+        <div className="flex items-center gap-3 sm:gap-4 sm:shrink-0">
+          <div className="text-right">
+            <div className="font-display text-xl font-semibold leading-none tracking-tight text-sv-dark">
+              ${Number(propuesta.precio).toLocaleString("es-AR")}
+            </div>
+            <div className="text-[11px] text-ink-400 mt-0.5">por consulta</div>
           </div>
+
+          {!isAccepted && !isRejected && (
+            <div className="flex gap-2 ml-auto sm:ml-0">
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => startTransition(async () => rechazarPropuesta(propuesta.id))}
+                className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-500 hover:bg-ink-50 disabled:opacity-50 transition"
+              >
+                Rechazar
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => onAceptar(propuesta, publicacion)}
+                className="rounded-lg bg-sv-primary px-4 py-1.5 text-xs font-semibold text-white hover:bg-sv-olive disabled:opacity-50 transition"
+              >
+                Aceptar
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Price + actions */}
-      <div className="flex items-center gap-3 sm:gap-4 sm:shrink-0">
-        <div className="text-right">
-          <div className="font-display text-xl font-semibold leading-none tracking-tight text-sv-dark">
-            ${Number(propuesta.precio).toLocaleString("es-AR")}
-          </div>
-          <div className="text-[11px] text-ink-400 mt-0.5">por consulta</div>
+      {/* Banner: descuenta del total */}
+      {propuesta.descuenta_de_presupuesto ? (
+        <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5">
+          <span className="shrink-0 text-amber-500">⚠️</span>
+          <p className="text-[12px] font-medium leading-relaxed text-amber-900">
+            <strong>Este monto se descuenta del presupuesto final.</strong> Si aceptás, el técnico lo restará del total del trabajo.
+          </p>
         </div>
-
-        {!isAccepted && !isRejected && (
-          <div className="flex gap-2 ml-auto sm:ml-0">
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => startTransition(async () => rechazarPropuesta(propuesta.id))}
-              className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-500 hover:bg-ink-50 disabled:opacity-50 transition"
-            >
-              Rechazar
-            </button>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => onAceptar(propuesta, publicacion)}
-              className="rounded-lg bg-sv-primary px-4 py-1.5 text-xs font-semibold text-white hover:bg-sv-olive disabled:opacity-50 transition"
-            >
-              Aceptar
-            </button>
-          </div>
-        )}
-      </div>
+      ) : (
+        <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-ink-200 bg-ink-50 px-3.5 py-2.5">
+          <span className="shrink-0 text-ink-400">ℹ️</span>
+          <p className="text-[12px] font-medium leading-relaxed text-ink-500">
+            Este monto <strong>no se descuenta</strong> del presupuesto final. Es un cargo independiente por la consulta.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── ProfesionalContacto ──────────────────────────────────────────────────────
-function ProfesionalContacto({ propuesta }: { propuesta: Propuesta }) {
+function ProfesionalContacto({ propuesta, pubTitle }: { propuesta: Propuesta; pubTitle: string }) {
   const nombre = propuesta.nombre_profesional ?? "Profesional";
   const initials = nombre.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const mensaje = encodeURIComponent(
+    `Hola ${nombre.split(" ")[0]}! Te contacto por SolvIT, acepté tu propuesta para el trabajo: "${pubTitle}". ¿Cuándo podemos coordinar la primera consulta?`
+  );
   const waLink = propuesta.profesional_telefono
-    ? `https://wa.me/${propuesta.profesional_telefono.replace(/\D/g, "")}`
+    ? `https://wa.me/${propuesta.profesional_telefono.replace(/\D/g, "")}?text=${mensaje}`
     : null;
 
   return (
@@ -184,16 +208,6 @@ function ProfesionalContacto({ propuesta }: { propuesta: Propuesta }) {
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">Teléfono</p>
               <p className="truncate text-sm font-medium text-sv-dark">{propuesta.profesional_telefono}</p>
-            </div>
-            <div className="flex shrink-0 gap-2">
-              <a href={`tel:${propuesta.profesional_telefono}`} className="rounded-lg border border-ink-200 px-3 py-1 text-[11px] font-semibold text-sv-dark hover:bg-ink-50 transition">
-                Llamar
-              </a>
-              {waLink && (
-                <a href={waLink} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#25D366] px-3 py-1 text-[11px] font-semibold text-white hover:bg-[#1ebe5d] transition">
-                  WhatsApp
-                </a>
-              )}
             </div>
           </div>
         )}
@@ -238,10 +252,11 @@ function ProfesionalContacto({ propuesta }: { propuesta: Propuesta }) {
       </div>
 
       {waLink && (
-        <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn-primary mt-3 block w-full text-center text-sm">
+        <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn-primary mt-3 block w-full text-center text-sm hover:!bg-[#1ebe5d]">
           WhatsApp a {nombre.split(" ")[0]}
         </a>
       )}
+
     </div>
   );
 }
@@ -311,7 +326,7 @@ function MiConsultaCard({
 
       {/* Datos del profesional — solo cuando la consulta está cerrada */}
       {pub.status === "cerrado" && propuestaAceptada && (
-        <ProfesionalContacto propuesta={propuestaAceptada} />
+        <ProfesionalContacto propuesta={propuestaAceptada} pubTitle={pub.title} />
       )}
 
       {expanded && pub.status === "abierto" && (
@@ -322,6 +337,7 @@ function MiConsultaCard({
             </h4>
             <span className="text-[11px] text-ink-400">Ordenadas por precio</span>
           </div>
+
           <div className="space-y-2">
             {[...pub.propuestas]
               .sort((a, b) => Number(a.precio) - Number(b.precio))

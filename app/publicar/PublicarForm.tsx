@@ -77,7 +77,7 @@ function PublicarInner() {
 
   const canContinue = (() => {
     if (step === 0) return !!cat;
-    if (step === 1) return title.trim().length > 8 && desc.trim().length > 20;
+    if (step === 1) return title.trim().length > 8;
     if (step === 2) return true;
     if (step === 3) return !!zone && !!urgency;
     return true;
@@ -151,7 +151,7 @@ function PublicarInner() {
             <div className="mt-8">
               {step === 0 && <StepRubro value={cat} onChange={setCat} />}
               {step === 1 && (
-                <StepDetalle title={title} desc={desc} onTitle={setTitle} onDesc={setDesc} />
+                <StepDetalle title={title} onTitle={setTitle} />
               )}
               {step === 2 && (
                 <StepFotos
@@ -167,7 +167,6 @@ function PublicarInner() {
               {step === 4 && (
                 <StepReview
                   title={title}
-                  desc={desc}
                   cat={selectedCat?.name}
                   zone={zone}
                   urgency={urgency}
@@ -245,9 +244,9 @@ function StepRubro({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 function StepDetalle({
-  title, desc, onTitle, onDesc,
+  title, onTitle,
 }: {
-  title: string; desc: string; onTitle: (v: string) => void; onDesc: (v: string) => void;
+  title: string; onTitle: (v: string) => void;
 }) {
   return (
     <div className="space-y-6">
@@ -260,23 +259,6 @@ function StepDetalle({
           className="field"
         />
         <div className="mt-1 text-xs text-ink-400">Una frase corta. Como si se lo contaras a un amigo.</div>
-      </div>
-      <div>
-        <label className="label">Contanos más</label>
-        <textarea
-          value={desc}
-          onChange={(e) => onDesc(e.target.value)}
-          rows={6}
-          placeholder="Hace cuánto pasa, qué probaste, si hay agua/gas/luz cortada, cuándo te queda mejor que vayan…"
-          className="field"
-        />
-        <div className="mt-1 text-xs text-ink-400">{desc.length} / 1000 caracteres</div>
-      </div>
-      <div className="card border-zap-200 bg-zap-50 p-4 text-sm">
-        <div className="font-semibold text-sv-dark">Tip de SolvIT</div>
-        <p className="mt-1 text-ink-400">
-          Cuanto más concreta sea tu descripción, mejores ofertas vas a recibir y menos viajes en vano del técnico.
-        </p>
       </div>
     </div>
   );
@@ -440,9 +422,9 @@ function StepZona({
 }
 
 function StepReview({
-  title, desc, cat, zone, urgency, photos,
+  title, cat, zone, urgency, photos,
 }: {
-  title: string; desc: string; cat?: string; zone: string; urgency: string; photos: string[];
+  title: string; cat?: string; zone: string; urgency: string; photos: string[];
 }) {
   const urgencyLabel = URGENCIES.find((u) => u.value === urgency)?.label ?? urgency;
   return (
@@ -454,7 +436,6 @@ function StepReview({
         <span className="pill bg-zap-50 text-sv-dark">⏱ {urgencyLabel}</span>
       </div>
       <h2 className="display mt-4 text-2xl">{title || "Sin título"}</h2>
-      <p className="mt-2 whitespace-pre-wrap text-sm text-ink-400">{desc || "Sin descripción"}</p>
       {photos.length > 0 && (
         <div className="mt-4 grid grid-cols-3 gap-2">
           {photos.map((src, i) => (

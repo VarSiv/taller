@@ -20,7 +20,7 @@ export default async function MisConsultasPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-[#f5fdf9]">
+      <main className={`min-h-screen ${esProfesional ? "bg-[#0e1a17]" : "bg-[#f5fdf9]"}`}>
         <div className="container-pad py-10">
           {esProfesional ? (
             <OferenteData userId={user.id} nombre={nombre} apellido={apellido} email={email} />
@@ -102,9 +102,24 @@ async function OferenteData({
 
   if (propError) console.error("[mis-consultas] oferente propuestas error:", propError.message);
 
+  // Obtener fotos de las publicaciones relacionadas
+  const pubIds = [...new Set((propuestas ?? []).map((p) => p.publicacion_id).filter(Boolean))];
+  const { data: pubFotos } = pubIds.length > 0
+    ? await supabase.from("publicaciones").select("id, photo").in("id", pubIds)
+    : { data: [] };
+
+  const photoMap: Record<string, string | null> = Object.fromEntries(
+    (pubFotos ?? []).map((p) => [p.id, p.photo ?? null])
+  );
+
+  const propuestasConFoto = (propuestas ?? []).map((p) => ({
+    ...p,
+    photo: photoMap[p.publicacion_id] ?? null,
+  }));
+
   return (
     <OferenteView
-      propuestas={propuestas ?? []}
+      propuestas={propuestasConFoto}
       nombre={nombre}
       apellido={apellido}
       email={email}

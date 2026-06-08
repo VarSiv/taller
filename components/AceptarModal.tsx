@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { CATEGORIES } from "@/lib/data";
 import { CategoryArt } from "./CategoryArt";
 import { aceptarPropuesta } from "@/app/mis-consultas/actions";
@@ -23,6 +24,7 @@ export type PublicacionParaPago = {
   title: string;
   category_slug: string;
   zone: string;
+  photo?: string | null;
 };
 
 interface Props {
@@ -84,9 +86,12 @@ function StepResumen({
     <>
       <ProgressBar step={0} />
 
-      {/* CategoryArt strip */}
+      {/* Foto de la consulta o CategoryArt */}
       <div className="relative mx-5 h-28 overflow-hidden rounded-2xl">
-        <CategoryArt icon={cat?.icon ?? "🔧"} hue={hue} className="h-full w-full" />
+        {publicacion.photo
+          ? <Image src={publicacion.photo} alt={publicacion.title} fill sizes="480px" className="object-cover" />
+          : <CategoryArt icon={cat?.icon ?? "🔧"} hue={hue} className="h-full w-full" />
+        }
         <button
           type="button"
           onClick={onCancelar}
@@ -353,34 +358,10 @@ function StepDesbloqueado({
 
           {/* Filas de contacto */}
           {telefono && (
-            <ContactRow
-              label="Teléfono"
-              value={telefono}
-              action={
-                <a
-                  href={`tel:${telefono}`}
-                  className="shrink-0 rounded-lg border border-ink-200 px-3 py-1 text-[11px] font-semibold text-sv-dark transition hover:bg-ink-50"
-                >
-                  Llamar
-                </a>
-              }
-            />
+            <ContactRow label="Teléfono" value={telefono} />
           )}
           {telefono && waLink && (
-            <ContactRow
-              label="WhatsApp"
-              value={telefono}
-              action={
-                <a
-                  href={waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-lg bg-[#25D366] px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-[#1ebe5d]"
-                >
-                  Abrir chat
-                </a>
-              }
-            />
+            <ContactRow label="WhatsApp" value={telefono} />
           )}
           {email && (
             <ContactRow label="Email" value={email} />
@@ -402,21 +383,11 @@ function StepDesbloqueado({
         </div>
 
         {/* Botones */}
-        <div className="mt-5 flex gap-3">
-          {waLink && (
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary flex-1 text-center"
-            >
-              WhatsApp a {nombre.split(" ")[0]}
-            </a>
-          )}
+        <div className="mt-5">
           <button
             type="button"
             onClick={onClose}
-            className={waLink ? "btn-ghost flex-1" : "btn-primary w-full"}
+            className="btn-primary w-full"
           >
             Ver mis consultas
           </button>
