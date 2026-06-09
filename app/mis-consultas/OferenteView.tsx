@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/data";
 import { CategoryArt } from "@/components/CategoryArt";
+import { confirmarCodigo } from "./actions";
 
 type Propuesta = {
   id: string;
@@ -19,12 +20,13 @@ type Propuesta = {
   photo: string | null;
 };
 
-type Tab = "todas" | "pendiente" | "aceptada" | "rechazada";
+type Tab = "todas" | "pendiente" | "aceptada" | "completada" | "rechazada";
 
 const ESTADO_MAP: Record<string, { label: string; cls: string; darkCls: string }> = {
-  pendiente: { label: "Pendiente", cls: "bg-amber-100 text-amber-700",          darkCls: "bg-amber-400/15 text-amber-300" },
-  aceptada:  { label: "Aceptada",  cls: "bg-sv-primary/10 text-sv-olive",       darkCls: "bg-zap-500/20 text-zap-300" },
-  rechazada: { label: "Rechazada", cls: "bg-rose-100 text-rose-700",            darkCls: "bg-rose-500/15 text-rose-400" },
+  pendiente:  { label: "Pendiente",  cls: "bg-amber-100 text-amber-700",       darkCls: "bg-amber-400/15 text-amber-300" },
+  aceptada:   { label: "Aceptada",   cls: "bg-sv-primary/10 text-sv-olive",    darkCls: "bg-zap-500/20 text-zap-300" },
+  completada: { label: "Completada", cls: "bg-emerald-100 text-emerald-700",   darkCls: "bg-emerald-500/20 text-emerald-300" },
+  rechazada:  { label: "Rechazada",  cls: "bg-rose-100 text-rose-700",         darkCls: "bg-rose-500/15 text-rose-400" },
 };
 
 function StatusPill({ estado, dark }: { estado: string; dark: boolean }) {
@@ -37,6 +39,85 @@ function StatusPill({ estado, dark }: { estado: string; dark: boolean }) {
   );
 }
 
+// ─── ConfirmarCodigoBlock ─────────────────────────────────────────────────────
+function ConfirmarCodigoBlock({ propuestaId, dark }: { propuestaId: string; dark: boolean }) {
+  const [codigo, setCodigo] = useState("");
+  const [error, setError] = useState("");
+  const [confirmado, setConfirmado] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  function handleConfirmar() {
+    if (codigo.length !== 4) return;
+    setError("");
+    startTransition(async () => {
+      const result = await confirmarCodigo(propuestaId, codigo);
+      if ("error" in result) {
+        setError(result.error);
+        setCodigo("");
+      } else {
+        setConfirmado(true);
+      }
+    });
+  }
+
+  const borderCls = dark ? "border-zap-500/20 bg-zap-500/5" : "border-sv-primary/20 bg-sv-primary/5";
+  const labelCls  = dark ? "text-zap-400" : "text-sv-olive";
+  const bodyCls   = dark ? "text-zap-300" : "text-ink-500";
+
+  if (confirmado) {
+    return (
+      <div className={`mt-3 rounded-xl border p-4 text-center ${dark ? "border-emerald-500/20 bg-emerald-500/5" : "border-emerald-200 bg-emerald-50"}`}>
+        <p className={`text-sm font-semibold ${dark ? "text-emerald-300" : "text-emerald-700"}`}>
+          ✓ Trabajo confirmado
+        </p>
+        <p className={`mt-1 text-xs ${dark ? "text-emerald-400/70" : "text-emerald-600"}`}>
+          El trabajo quedó registrado como completado en SolvIT.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`mt-3 rounded-xl border p-4 ${borderCls}`}>
+      <p className={`text-[10.5px] font-semibold uppercase tracking-wide ${labelCls}`}>
+        Confirmar trabajo realizado
+      </p>
+      <p className={`mt-1 text-[12px] leading-relaxed ${bodyCls}`}>
+        Pedile al demandante el código de 4 dígitos cuando el servicio esté completo e ingresalo acá para cerrar el trabajo.
+      </p>
+      <div className="mt-3 flex gap-2">
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={4}
+          placeholder="0000"
+          value={codigo}
+          onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          className={`w-24 rounded-xl border px-3 py-2 text-center font-display text-xl font-semibold tracking-widest focus:outline-none ${
+            dark
+              ? "border-white/20 bg-white/5 text-zap-50 placeholder-zap-600 focus:border-zap-400"
+              : "border-ink-200 bg-white text-sv-dark focus:border-sv-primary"
+          }`}
+        />
+        <button
+          type="button"
+          disabled={codigo.length !== 4 || isPending}
+          onClick={handleConfirmar}
+          className="btn-primary flex-1 text-sm disabled:opacity-50"
+        >
+          {isPending ? "Confirmando…" : "Confirmar trabajo"}
+        </button>
+      </div>
+      {error && (
+        <p className={`mt-2 text-xs font-medium ${dark ? "text-rose-400" : "text-rose-600"}`}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── MiPropuestaCard ──────────────────────────────────────────────────────────
 function MiPropuestaCard({ p, dark }: { p: Propuesta; dark: boolean }) {
   const cat = CATEGORIES.find((c) => c.slug === p.categoria);
   const estado = p.estado ?? "pendiente";
@@ -45,11 +126,11 @@ function MiPropuestaCard({ p, dark }: { p: Propuesta; dark: boolean }) {
     ? "rounded-2xl border border-white/10 bg-[#162420] p-5"
     : "rounded-2xl border border-ink-100 bg-white p-5 shadow-[0_1px_2px_rgba(40,63,59,0.04)]";
 
-  const titleCls  = dark ? "text-zap-50"      : "text-sv-dark";
-  const metaCls   = dark ? "text-zap-400"     : "text-ink-400";
-  const priceCls  = dark ? "text-zap-50"      : "text-sv-dark";
-  const labelCls  = dark ? "text-zap-500"     : "text-ink-400";
-  const demCls    = dark ? "text-zap-200"     : "text-sv-dark";
+  const titleCls = dark ? "text-zap-50"   : "text-sv-dark";
+  const metaCls  = dark ? "text-zap-400"  : "text-ink-400";
+  const priceCls = dark ? "text-zap-50"   : "text-sv-dark";
+  const labelCls = dark ? "text-zap-500"  : "text-ink-400";
+  const demCls   = dark ? "text-zap-200"  : "text-sv-dark";
 
   const priceBlock = estado !== "rechazada" && (
     <>
@@ -108,27 +189,25 @@ function MiPropuestaCard({ p, dark }: { p: Propuesta; dark: boolean }) {
         )}
       </div>
 
-      {/* Mensajes de estado */}
+      {/* Input de confirmación — solo para propuestas aceptadas (el técnico ingresa el código del demandante) */}
       {estado === "aceptada" && (
-        <div className="mt-3 space-y-2">
-          {p.codigo_pago && (
-            <div className={`rounded-xl border p-3 ${dark ? "border-zap-500/20 bg-zap-500/5" : "border-sv-primary/20 bg-sv-primary/5"}`}>
-              <p className={`text-[10.5px] font-semibold uppercase tracking-wide ${dark ? "text-zap-400" : "text-sv-olive"}`}>
-                Tu código de pago
-              </p>
-              <p className={`mt-1 text-[12px] leading-relaxed ${dark ? "text-zap-300" : "text-ink-500"}`}>
-                Enviáselo al demandante por WhatsApp para confirmar el cobro:
-              </p>
-              <div className="mt-2">
-                <span className={`font-display text-3xl font-bold tracking-[0.2em] ${dark ? "text-zap-50" : "text-sv-dark"}`}>
-                  {p.codigo_pago}
-                </span>
-              </div>
-            </div>
-          )}
+        <ConfirmarCodigoBlock propuestaId={p.id} dark={dark} />
+      )}
+
+      {/* Trabajo completado */}
+      {estado === "completada" && (
+        <div className={`mt-3 rounded-xl border px-3 py-2.5 ${dark ? "border-emerald-500/20 bg-emerald-500/10" : "border-emerald-200 bg-emerald-50"}`}>
+          <div className={`flex items-center gap-2 text-xs font-semibold ${dark ? "text-emerald-300" : "text-emerald-700"}`}>
+            <span>✓</span>
+            Trabajo completado
+          </div>
+          <p className={`mt-0.5 text-[11.5px] ${dark ? "text-emerald-400/70" : "text-emerald-600"}`}>
+            El código fue confirmado y el trabajo quedó cerrado en SolvIT.
+          </p>
         </div>
       )}
 
+      {/* Propuesta rechazada */}
       {estado === "rechazada" && (
         <div className={`mt-3 rounded-xl border px-3 py-2.5 ${dark ? "border-rose-500/20 bg-rose-500/10" : "border-rose-200 bg-rose-50"}`}>
           <div className={`flex items-center gap-2 text-xs font-semibold ${dark ? "text-rose-400" : "text-rose-700"}`}>
@@ -164,7 +243,7 @@ export function OferenteView({
   email?: string;
 }) {
   const [tab, setTab] = useState<Tab>("todas");
-  const dark = true; // oferente siempre dark
+  const dark = true;
 
   const displayName = [nombre, apellido].filter(Boolean).join(" ") || email || "Profesional";
   const initials =
@@ -177,19 +256,20 @@ export function OferenteView({
   const getEstado = (p: Propuesta) => p.estado ?? "pendiente";
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "todas",     label: "Todas",      count: propuestas.length },
-    { id: "pendiente", label: "Pendientes", count: propuestas.filter((p) => getEstado(p) === "pendiente").length },
-    { id: "aceptada",  label: "Aceptadas",  count: propuestas.filter((p) => getEstado(p) === "aceptada").length },
-    { id: "rechazada", label: "Rechazadas", count: propuestas.filter((p) => getEstado(p) === "rechazada").length },
+    { id: "todas",      label: "Todas",       count: propuestas.length },
+    { id: "pendiente",  label: "Pendientes",  count: propuestas.filter((p) => getEstado(p) === "pendiente").length },
+    { id: "aceptada",   label: "Aceptadas",   count: propuestas.filter((p) => getEstado(p) === "aceptada").length },
+    { id: "completada", label: "Completadas", count: propuestas.filter((p) => getEstado(p) === "completada").length },
+    { id: "rechazada",  label: "Rechazadas",  count: propuestas.filter((p) => getEstado(p) === "rechazada").length },
   ];
 
   const filtered = tab === "todas" ? propuestas : propuestas.filter((p) => getEstado(p) === tab);
 
   const stats = [
-    { value: propuestas.length,                                                          label: "Enviadas",   accent: false },
-    { value: propuestas.filter((p) => getEstado(p) === "aceptada").length,               label: "Aceptadas",  accent: true  },
-    { value: propuestas.filter((p) => getEstado(p) === "pendiente").length,              label: "Pendientes", accent: false },
-    { value: propuestas.filter((p) => getEstado(p) === "rechazada").length,              label: "Rechazadas", accent: false },
+    { value: propuestas.length,                                                            label: "Enviadas",    accent: false },
+    { value: propuestas.filter((p) => getEstado(p) === "aceptada").length,                label: "Aceptadas",   accent: true  },
+    { value: propuestas.filter((p) => getEstado(p) === "completada").length,              label: "Completadas", accent: false },
+    { value: propuestas.filter((p) => getEstado(p) === "rechazada").length,               label: "Rechazadas",  accent: false },
   ];
 
   if (propuestas.length === 0) {
@@ -198,7 +278,7 @@ export function OferenteView({
         <div className="text-4xl">🔧</div>
         <h3 className="display mt-3 text-2xl text-zap-50">Todavía no enviaste propuestas</h3>
         <p className="mt-2 text-zap-400">
-          Cuando contactes a un demandante, tus propuestas van a aparecer acá.
+          Cuando contactés a un demandante, tus propuestas van a aparecer acá.
         </p>
         <Link href="/" className="btn-primary mt-6 inline-block">
           Ver consultas disponibles
@@ -241,7 +321,7 @@ export function OferenteView({
       <div>
         <h2 className="display mb-3.5 text-xl text-zap-50 sm:text-[22px]">Mis propuestas</h2>
 
-        {/* Tab bar — scrollable en mobile para evitar overflow */}
+        {/* Tab bar */}
         <div className="no-scrollbar flex overflow-x-auto border-b border-white/10">
           {tabs.map((t) => (
             <button

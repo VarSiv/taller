@@ -37,17 +37,19 @@ type Publicacion = {
   propuestas: Propuesta[];
 };
 
+// "activa" incluye abierto + en_curso
 type Tab = "abierto" | "cerrado";
 
 // ─── StatusPill ───────────────────────────────────────────────────────────────
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    abierto:   { label: "Activa",    cls: "bg-sv-primary/10 text-sv-olive" },
-    en_curso:  { label: "En curso",  cls: "bg-blue-100 text-blue-700" },
-    cerrado:   { label: "Cerrada",   cls: "bg-ink-100 text-ink-500" },
-    aceptada:  { label: "Aceptada",  cls: "bg-sv-primary/10 text-sv-olive" },
-    rechazada: { label: "Rechazada", cls: "bg-rose-100 text-rose-700" },
-    pendiente: { label: "Pendiente", cls: "bg-amber-100 text-amber-700" },
+    abierto:    { label: "Activa",      cls: "bg-sv-primary/10 text-sv-olive" },
+    en_curso:   { label: "En curso",    cls: "bg-blue-100 text-blue-700" },
+    cerrado:    { label: "Cerrada",     cls: "bg-ink-100 text-ink-500" },
+    aceptada:   { label: "Aceptada",    cls: "bg-sv-primary/10 text-sv-olive" },
+    rechazada:  { label: "Rechazada",   cls: "bg-rose-100 text-rose-700" },
+    pendiente:  { label: "Pendiente",   cls: "bg-amber-100 text-amber-700" },
+    completada: { label: "Completada",  cls: "bg-emerald-100 text-emerald-700" },
   };
   const s = map[status] ?? map.abierto;
   return (
@@ -74,6 +76,26 @@ function ConsultaThumb({ slug, photo }: { slug: string; photo: string | null }) 
       hue={cat?.hue ?? 180}
       className="h-16 w-16 shrink-0 rounded-2xl"
     />
+  );
+}
+
+// ─── CodigoOTPBlock ───────────────────────────────────────────────────────────
+function CodigoOTPBlock({ codigo }: { codigo: string }) {
+  return (
+    <div className="border-t border-ink-100 bg-amber-50 px-5 py-4">
+      <p className="text-[10.5px] font-semibold uppercase tracking-wide text-amber-700">
+        🔑 Tu código de confirmación
+      </p>
+      <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-900">
+        Entregáselo al técnico <strong>únicamente cuando el servicio esté completo</strong>.
+        Es lo que le permite confirmar el cobro. No lo compartás antes.
+      </p>
+      <div className="mt-3 flex items-center justify-center rounded-xl border border-amber-300 bg-white py-4">
+        <span className="font-display text-4xl font-bold tracking-[0.35em] text-amber-800">
+          {codigo}
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -256,7 +278,6 @@ function ProfesionalContacto({ propuesta, pubTitle }: { propuesta: Propuesta; pu
           WhatsApp a {nombre.split(" ")[0]}
         </a>
       )}
-
     </div>
   );
 }
@@ -277,7 +298,8 @@ function MiConsultaCard({
   const pendingCount = pub.propuestas.filter(
     (p) => !p.estado || p.estado === "pendiente"
   ).length;
-  const propuestaAceptada = pub.propuestas.find((p) => p.estado === "aceptada") ?? null;
+  const propuestaAceptada =
+    pub.propuestas.find((p) => p.estado === "aceptada" || p.estado === "completada") ?? null;
 
   const toggleBtn = pub.status === "abierto" && pendingCount > 0 ? (
     <button
@@ -324,8 +346,13 @@ function MiConsultaCard({
         )}
       </div>
 
-      {/* Datos del profesional — solo cuando la consulta está cerrada */}
-      {pub.status === "cerrado" && propuestaAceptada && (
+      {/* Código OTP — visible solo para el demandante cuando el trabajo está en curso */}
+      {pub.status === "en_curso" && propuestaAceptada?.codigo_pago && (
+        <CodigoOTPBlock codigo={propuestaAceptada.codigo_pago} />
+      )}
+
+      {/* Datos del profesional — desbloqueados cuando la propuesta fue aceptada o completada */}
+      {(pub.status === "en_curso" || pub.status === "cerrado") && propuestaAceptada && (
         <ProfesionalContacto propuesta={propuestaAceptada} pubTitle={pub.title} />
       )}
 
@@ -337,7 +364,6 @@ function MiConsultaCard({
             </h4>
             <span className="text-[11px] text-ink-400">Ordenadas por precio</span>
           </div>
-
           <div className="space-y-2">
             {[...pub.propuestas]
               .sort((a, b) => Number(a.precio) - Number(b.precio))
@@ -388,7 +414,6 @@ export function DemandanteView({
 
   function handleCerrarModal() {
     setPagoInfo(null);
-    setTab("cerrado");
     router.refresh();
   }
 
@@ -403,18 +428,21 @@ export function DemandanteView({
   const totalPropuestas = publicaciones.reduce((s, p) => s + p.propuestas.length, 0);
 
   const stats = [
-    { value: publicaciones.filter((p) => p.status === "abierto").length, label: "Consultas activas", accent: true },
+    { value: publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso").length, label: "Consultas activas", accent: true },
     { value: publicaciones.filter((p) => p.status === "cerrado").length, label: "Resueltas", accent: false },
     { value: totalPropuestas, label: "Propuestas recibidas", accent: false },
-    { value: publicaciones.filter((p) => p.propuestas.some((pr) => pr.estado === "aceptada")).length, label: "Con profesional", accent: false },
+    { value: publicaciones.filter((p) => p.propuestas.some((pr) => pr.estado === "aceptada" || pr.estado === "completada")).length, label: "Con profesional", accent: false },
   ];
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "abierto",  label: "Activas",  count: publicaciones.filter((p) => p.status === "abierto").length },
+    { id: "abierto",  label: "Activas",  count: publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso").length },
     { id: "cerrado",  label: "Cerradas", count: publicaciones.filter((p) => p.status === "cerrado").length },
   ];
 
-  const filtered = publicaciones.filter((p) => p.status === tab);
+  // "abierto" tab incluye tanto abierto como en_curso
+  const filtered = tab === "abierto"
+    ? publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso")
+    : publicaciones.filter((p) => p.status === "cerrado");
 
   if (publicaciones.length === 0) {
     return (
