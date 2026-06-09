@@ -6,9 +6,11 @@ import Link from "next/link";
 import { CATEGORIES } from "@/lib/data";
 import { CategoryArt } from "@/components/CategoryArt";
 import { confirmarCodigo } from "./actions";
+import { ReportarProblemaModal } from "./ReportarProblemaModal";
 
 type Propuesta = {
   id: string;
+  publicacion_id: string;
   precio: number;
   titulo: string | null;
   zona: string | null;
@@ -27,6 +29,7 @@ const ESTADO_MAP: Record<string, { label: string; cls: string; darkCls: string }
   aceptada:   { label: "Aceptada",   cls: "bg-sv-primary/10 text-sv-olive",    darkCls: "bg-zap-500/20 text-zap-300" },
   completada: { label: "Completada", cls: "bg-emerald-100 text-emerald-700",   darkCls: "bg-emerald-500/20 text-emerald-300" },
   rechazada:  { label: "Rechazada",  cls: "bg-rose-100 text-rose-700",         darkCls: "bg-rose-500/15 text-rose-400" },
+  en_disputa: { label: "En disputa", cls: "bg-rose-100 text-rose-700",         darkCls: "bg-rose-500/20 text-rose-300" },
 };
 
 function StatusPill({ estado, dark }: { estado: string; dark: boolean }) {
@@ -119,8 +122,10 @@ function ConfirmarCodigoBlock({ propuestaId, dark }: { propuestaId: string; dark
 
 // ─── MiPropuestaCard ──────────────────────────────────────────────────────────
 function MiPropuestaCard({ p, dark }: { p: Propuesta; dark: boolean }) {
+  const [reportando, setReportando] = useState(false);
   const cat = CATEGORIES.find((c) => c.slug === p.categoria);
   const estado = p.estado ?? "pendiente";
+  const puedeReportar = estado === "aceptada" || estado === "completada";
 
   const cardCls = dark
     ? "rounded-2xl border border-white/10 bg-[#162420] p-5"
@@ -205,6 +210,27 @@ function MiPropuestaCard({ p, dark }: { p: Propuesta; dark: boolean }) {
             El código fue confirmado y el trabajo quedó cerrado en SolvIT.
           </p>
         </div>
+      )}
+
+      {/* Botón reportar problema */}
+      {puedeReportar && (
+        <button
+          type="button"
+          onClick={() => setReportando(true)}
+          className={`mt-3 w-full text-center text-xs transition ${dark ? "text-zap-600 hover:text-rose-400" : "text-ink-400 hover:text-rose-600"}`}
+        >
+          ¿Hubo un problema? Reportalo acá
+        </button>
+      )}
+
+      {reportando && (
+        <ReportarProblemaModal
+          propuestaId={p.id}
+          publicacionId={p.publicacion_id}
+          rol="oferente"
+          dark={dark}
+          onClose={() => setReportando(false)}
+        />
       )}
 
       {/* Propuesta rechazada */}

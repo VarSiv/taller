@@ -87,3 +87,58 @@ export async function confirmarCodigo(
   revalidatePath("/mis-consultas");
   return { ok: true };
 }
+
+export async function reportarProblema(
+  propuestaId: string,
+  publicacionId: string,
+  motivo: string,
+  rol: "demandante" | "oferente"
+): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createSupabaseServer();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado" };
+
+  // Verificar que el usuario es parte de esta propuesta
+  const { data: propuesta } = await supabase
+    .from("propuestas")
+    .select("profesional_id, publicacion_id, estado")
+    .eq("id", propuestaId)
+    .single();
+
+  if (!propuesta) return { error: "Propuesta no encontrada" };
+
+  if (rol === "oferente" && propuesta.profesional_id !== user.id)
+    return { error: "No autorizado" };
+
+  if (rol === "demandante") {
+    const { data: pub } = await supabase
+      .from("publicaciones")
+      .select("user_id")
+      .eq("id", publicacionId)
+      .single();
+    if (!pub || pub.user_id !== user.id) return { error: "No autorizado" };
+  }
+
+  const estadosValidos = ["aceptada", "completada", "en_disputa"];
+  if (!estadosValidos.includes(propuesta.estado ?? ""))
+    return { error: "No podés reportar un problema en el estado actual" };
+
+  const { error: errDisputa } = await supabase.from("disputas").insert({
+    propuesta_id: propuestaId,
+    publicacion_id: publicacionId,
+    autor_id: user.id,
+    rol,
+    motivo: motivo.trim(),
+  });
+
+  if (errDisputa) return { error: `Error al reportar: ${errDisputa.message}` };
+
+  await supabase
+    .from("publicaciones")
+    .update({ status: "en_disputa" })
+    .eq("id", publicacionId);
+
+  revalidatePath("/mis-consultas");
+  return { ok: true };
+}

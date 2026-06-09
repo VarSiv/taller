@@ -8,6 +8,7 @@ import { CATEGORIES } from "@/lib/data";
 import { CategoryArt } from "@/components/CategoryArt";
 import { rechazarPropuesta } from "./actions";
 import { AceptarModal, type PropuestaParaPago, type PublicacionParaPago } from "@/components/AceptarModal";
+import { ReportarProblemaModal } from "./ReportarProblemaModal";
 
 type Propuesta = {
   id: string;
@@ -45,6 +46,7 @@ function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     abierto:    { label: "Activa",      cls: "bg-sv-primary/10 text-sv-olive" },
     en_curso:   { label: "En curso",    cls: "bg-blue-100 text-blue-700" },
+    en_disputa: { label: "En disputa",  cls: "bg-rose-100 text-rose-700" },
     cerrado:    { label: "Cerrada",     cls: "bg-ink-100 text-ink-500" },
     aceptada:   { label: "Aceptada",    cls: "bg-sv-primary/10 text-sv-olive" },
     rechazada:  { label: "Rechazada",   cls: "bg-rose-100 text-rose-700" },
@@ -196,8 +198,18 @@ function PropuestaRow({
 }
 
 // ─── ProfesionalContacto ──────────────────────────────────────────────────────
-function ProfesionalContacto({ propuesta, pubTitle }: { propuesta: Propuesta; pubTitle: string }) {
+function ProfesionalContacto({
+  propuesta,
+  pubTitle,
+  pubStatus,
+}: {
+  propuesta: Propuesta;
+  pubTitle: string;
+  pubStatus: string;
+}) {
+  const [reportando, setReportando] = useState(false);
   const nombre = propuesta.nombre_profesional ?? "Profesional";
+  const puedeReportar = pubStatus === "en_curso" || pubStatus === "cerrado";
   const initials = nombre.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const mensaje = encodeURIComponent(
     `Hola ${nombre.split(" ")[0]}! Te contacto por SolvIT, acepté tu propuesta para el trabajo: "${pubTitle}". ¿Cuándo podemos coordinar la primera consulta?`
@@ -278,6 +290,25 @@ function ProfesionalContacto({ propuesta, pubTitle }: { propuesta: Propuesta; pu
           WhatsApp a {nombre.split(" ")[0]}
         </a>
       )}
+
+      {puedeReportar && (
+        <button
+          type="button"
+          onClick={() => setReportando(true)}
+          className="mt-3 w-full text-center text-xs text-ink-400 transition hover:text-rose-600"
+        >
+          ¿Hubo un problema? Reportalo acá
+        </button>
+      )}
+
+      {reportando && (
+        <ReportarProblemaModal
+          propuestaId={propuesta.id}
+          publicacionId={propuesta.publicacion_id}
+          rol="demandante"
+          onClose={() => setReportando(false)}
+        />
+      )}
     </div>
   );
 }
@@ -352,8 +383,8 @@ function MiConsultaCard({
       )}
 
       {/* Datos del profesional — desbloqueados cuando la propuesta fue aceptada o completada */}
-      {(pub.status === "en_curso" || pub.status === "cerrado") && propuestaAceptada && (
-        <ProfesionalContacto propuesta={propuestaAceptada} pubTitle={pub.title} />
+      {(pub.status === "en_curso" || pub.status === "cerrado" || pub.status === "en_disputa") && propuestaAceptada && (
+        <ProfesionalContacto propuesta={propuestaAceptada} pubTitle={pub.title} pubStatus={pub.status} />
       )}
 
       {expanded && pub.status === "abierto" && (
@@ -428,20 +459,20 @@ export function DemandanteView({
   const totalPropuestas = publicaciones.reduce((s, p) => s + p.propuestas.length, 0);
 
   const stats = [
-    { value: publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso").length, label: "Consultas activas", accent: true },
+    { value: publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso" || p.status === "en_disputa").length, label: "Consultas activas", accent: true },
     { value: publicaciones.filter((p) => p.status === "cerrado").length, label: "Resueltas", accent: false },
     { value: totalPropuestas, label: "Propuestas recibidas", accent: false },
     { value: publicaciones.filter((p) => p.propuestas.some((pr) => pr.estado === "aceptada" || pr.estado === "completada")).length, label: "Con profesional", accent: false },
   ];
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "abierto",  label: "Activas",  count: publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso").length },
+    { id: "abierto",  label: "Activas",  count: publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso" || p.status === "en_disputa").length },
     { id: "cerrado",  label: "Cerradas", count: publicaciones.filter((p) => p.status === "cerrado").length },
   ];
 
   // "abierto" tab incluye tanto abierto como en_curso
   const filtered = tab === "abierto"
-    ? publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso")
+    ? publicaciones.filter((p) => p.status === "abierto" || p.status === "en_curso" || p.status === "en_disputa")
     : publicaciones.filter((p) => p.status === "cerrado");
 
   if (publicaciones.length === 0) {
