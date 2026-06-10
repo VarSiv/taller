@@ -7,6 +7,10 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* Previene zoom automático en iOS Safari al hacer foco en inputs */
+  input, select, textarea {
+    font-size: max(16px, 1em);
+  }
   body {
     @apply bg-[#f5fdf9] text-sv-dark;
     font-family: var(--font-inter), system-ui, sans-serif;
@@ -53,7 +57,7 @@
     @apply rounded-2xl border border-zap-100 bg-white;
   }
   .field {
-    @apply w-full rounded-xl border border-zap-200 bg-white px-4 py-3 text-sm placeholder:text-ink-400 focus:border-sv-primary focus:outline-none;
+    @apply w-full rounded-xl border border-zap-200 bg-white px-4 py-3 text-base placeholder:text-ink-400 focus:border-sv-primary focus:outline-none;
   }
   .label {
     @apply mb-1.5 block text-sm font-medium text-sv-olive;
