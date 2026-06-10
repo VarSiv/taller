@@ -1,13 +1,13 @@
 "use client";
 
+import Image from "next/image";
+
 export function LoadingScreen({ message = "Cargando…" }: { message?: string }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f5fdf9] animate-in fade-in duration-200">
-      {/* Wordmark */}
-      <div className="mb-10 flex items-center gap-2.5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sv-dark shadow-lg">
-          <span className="font-display text-xl font-bold text-sv-primary">S</span>
-        </div>
+      {/* Logo + Wordmark */}
+      <div className="mb-10 flex items-center gap-3">
+        <Image src="/logo.png" alt="SolvIT" width={52} height={52} priority />
         <span className="font-display text-[26px] font-semibold tracking-tight text-sv-dark">SolvIT</span>
       </div>
 
@@ -22,13 +22,9 @@ export function LoadingScreen({ message = "Cargando…" }: { message?: string })
 
       {/* Puntos animados */}
       <div className="mt-3 flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="block h-1.5 w-1.5 animate-bounce rounded-full bg-sv-primary/40"
-            style={{ animationDelay: `${i * 160}ms` }}
-          />
-        ))}
+        <span className="block h-1.5 w-1.5 animate-bounce rounded-full bg-sv-primary/40 delay-0" />
+        <span className="block h-1.5 w-1.5 animate-bounce rounded-full bg-sv-primary/40 delay-150" />
+        <span className="block h-1.5 w-1.5 animate-bounce rounded-full bg-sv-primary/40 delay-300" />
       </div>
     </div>
   );
