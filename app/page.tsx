@@ -32,6 +32,18 @@ export default async function HomePage({
     .neq("status", "cerrado")
     .order("created_at", { ascending: false });
 
+  // Conteo real de propuestas por publicación (vista pública, no expone datos sensibles)
+  const pubIds = (dbJobs ?? []).map((p: Publicacion) => p.id);
+  const { data: bidCounts } = pubIds.length > 0
+    ? await supabaseServer
+        .from("propuestas_count_por_publicacion")
+        .select("publicacion_id, total")
+        .in("publicacion_id", pubIds)
+    : { data: [] };
+  const bidsMap: Record<string, number> = Object.fromEntries(
+    (bidCounts ?? []).map((c: { publicacion_id: string; total: number }) => [c.publicacion_id, Number(c.total)])
+  );
+
   // IDs de publicaciones del usuario actual
   const misPublicacionesIds = user
     ? (dbJobs ?? []).filter((p: Publicacion) => p.user_id === user.id).map((p: Publicacion) => p.id)
@@ -50,7 +62,7 @@ export default async function HomePage({
     postedBy: p.posted_by,
     postedAgo: "reciente",
     budget: { min: 0, max: 0 },
-    bidsCount: 0,
+    bidsCount: bidsMap[p.id] ?? 0,
     status: p.status as PostedJob["status"],
   }));
 
