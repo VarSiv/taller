@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { supabase } from "@/lib/supabase";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function IngresarPage() {
   return (
@@ -23,6 +24,7 @@ function IngresarInner() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,9 +46,12 @@ function IngresarInner() {
       return;
     }
 
+    setRedirecting(true);
     router.push(next);
     router.refresh();
   }
+
+  if (redirecting) return <LoadingScreen message="Iniciando sesión…" />;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5fdf9] p-8">

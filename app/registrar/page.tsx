@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { CATEGORIES, ZONES } from "@/lib/data";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function RegistrarPage() {
   const router = useRouter();
@@ -22,8 +23,8 @@ export default function RegistrarPage() {
   const [zona, setZona] = useState("");
 
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -75,9 +76,16 @@ export default function RegistrarPage() {
       return;
     }
 
-    setSuccess(true);
     setLoading(false);
-    setTimeout(() => router.push("/"), 3000);
+    setRedirecting(true);
+    setTimeout(() => router.push("/"), 1800);
+  }
+
+  if (redirecting) {
+    const msg = esProfesional
+      ? "¡Bienvenido! Configurando tu perfil…"
+      : "¡Cuenta creada! Redirigiendo…";
+    return <LoadingScreen message={msg} />;
   }
 
   return (
@@ -240,12 +248,6 @@ export default function RegistrarPage() {
           {error && (
             <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">
               {error}
-            </p>
-          )}
-
-          {success && (
-            <p className="rounded-xl bg-green-50 px-4 py-2 text-sm text-green-700">
-              ¡Cuenta creada! Si recibís un email de confirmación, revisá tu bandeja. Redirigiendo…
             </p>
           )}
 
