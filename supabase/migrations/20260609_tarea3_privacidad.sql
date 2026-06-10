@@ -33,7 +33,7 @@ CREATE POLICY "perfil_contacto_si_aceptado" ON perfiles_profesionales
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM propuestas p
-      JOIN publicaciones pub ON pub.id = p.publicacion_id
+      JOIN publicaciones pub ON pub.id = p.publicacion_id::uuid
       WHERE p.profesional_id = perfiles_profesionales.user_id
         AND pub.user_id = auth.uid()
         AND p.estado IN ('aceptada', 'completada')
