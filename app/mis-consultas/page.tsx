@@ -71,9 +71,30 @@ async function DemandanteData({
     propuestas: (propuestas ?? []).filter((p) => p.publicacion_id === pub.id),
   }));
 
+  // Fetch perfiles para propuestas aceptadas/completadas (el RLS solo devuelve los autorizados)
+  const proIdsAceptados = [
+    ...new Set(
+      (propuestas ?? [])
+        .filter((p) => p.estado === "aceptada" || p.estado === "completada")
+        .map((p) => p.profesional_id)
+        .filter(Boolean)
+    ),
+  ];
+  const { data: perfiles } =
+    proIdsAceptados.length > 0
+      ? await supabase
+          .from("perfiles_profesionales")
+          .select("user_id, nombre, telefono, email, zona")
+          .in("user_id", proIdsAceptados)
+      : { data: [] };
+
+  const perfilMap: Record<string, { user_id: string; nombre: string | null; telefono: string | null; email: string | null; zona: string | null }> =
+    Object.fromEntries((perfiles ?? []).map((p) => [p.user_id, p]));
+
   return (
     <DemandanteView
       publicaciones={publicacionesConPropuestas}
+      perfilMap={perfilMap}
       nombre={nombre}
       apellido={apellido}
       email={email}

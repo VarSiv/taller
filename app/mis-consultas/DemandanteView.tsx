@@ -25,6 +25,14 @@ type Propuesta = {
   descuenta_de_presupuesto: boolean | null;
 };
 
+type PerfilProfesional = {
+  user_id: string;
+  nombre: string | null;
+  telefono: string | null;
+  email: string | null;
+  zona: string | null;
+};
+
 type Publicacion = {
   id: string;
   title: string;
@@ -202,20 +210,25 @@ function ProfesionalContacto({
   propuesta,
   pubTitle,
   pubStatus,
+  perfil,
 }: {
   propuesta: Propuesta;
   pubTitle: string;
   pubStatus: string;
+  perfil: PerfilProfesional | null;
 }) {
   const [reportando, setReportando] = useState(false);
   const nombre = propuesta.nombre_profesional ?? "Profesional";
   const puedeReportar = pubStatus === "en_curso" || pubStatus === "cerrado";
   const initials = nombre.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  // Prefiere datos de perfiles_profesionales; retrocompatible con propuestas antiguas
+  const telefono = perfil?.telefono ?? propuesta.profesional_telefono ?? null;
+  const emailPro = perfil?.email ?? propuesta.profesional_email ?? null;
   const mensaje = encodeURIComponent(
     `Hola ${nombre.split(" ")[0]}! Te contacto por SolvIT, acepté tu propuesta para el trabajo: "${pubTitle}". ¿Cuándo podemos coordinar la primera consulta?`
   );
-  const waLink = propuesta.profesional_telefono
-    ? `https://wa.me/${propuesta.profesional_telefono.replace(/\D/g, "")}?text=${mensaje}`
+  const waLink = telefono
+    ? `https://wa.me/${telefono.replace(/\D/g, "")}?text=${mensaje}`
     : null;
 
   return (
@@ -237,19 +250,19 @@ function ProfesionalContacto({
 
       {/* Filas de contacto */}
       <div className="overflow-hidden rounded-xl border border-ink-100 bg-white divide-y divide-ink-100">
-        {propuesta.profesional_telefono && (
+        {telefono && (
           <div className="flex items-center gap-3 px-4 py-2.5">
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">Teléfono</p>
-              <p className="truncate text-sm font-medium text-sv-dark">{propuesta.profesional_telefono}</p>
+              <p className="truncate text-sm font-medium text-sv-dark">{telefono}</p>
             </div>
           </div>
         )}
-        {propuesta.profesional_email && (
+        {emailPro && (
           <div className="flex items-center gap-3 px-4 py-2.5">
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">Email</p>
-              <p className="truncate text-sm font-medium text-sv-dark">{propuesta.profesional_email}</p>
+              <p className="truncate text-sm font-medium text-sv-dark">{emailPro}</p>
             </div>
           </div>
         )}
@@ -319,11 +332,13 @@ function MiConsultaCard({
   expanded,
   onToggle,
   onAceptar,
+  perfilMap,
 }: {
   pub: Publicacion;
   expanded: boolean;
   onToggle: () => void;
   onAceptar: (p: Propuesta, pub: Publicacion) => void;
+  perfilMap: Record<string, PerfilProfesional>;
 }) {
   const cat = CATEGORIES.find((c) => c.slug === pub.category_slug);
   const pendingCount = pub.propuestas.filter(
@@ -331,6 +346,7 @@ function MiConsultaCard({
   ).length;
   const propuestaAceptada =
     pub.propuestas.find((p) => p.estado === "aceptada" || p.estado === "completada") ?? null;
+  const perfil = propuestaAceptada ? (perfilMap[propuestaAceptada.profesional_id] ?? null) : null;
 
   const toggleBtn = pub.status === "abierto" && pendingCount > 0 ? (
     <button
@@ -384,7 +400,7 @@ function MiConsultaCard({
 
       {/* Datos del profesional — desbloqueados cuando la propuesta fue aceptada o completada */}
       {(pub.status === "en_curso" || pub.status === "cerrado" || pub.status === "en_disputa") && propuestaAceptada && (
-        <ProfesionalContacto propuesta={propuestaAceptada} pubTitle={pub.title} pubStatus={pub.status} />
+        <ProfesionalContacto propuesta={propuestaAceptada} pubTitle={pub.title} pubStatus={pub.status} perfil={perfil} />
       )}
 
       {expanded && pub.status === "abierto" && (
@@ -425,11 +441,13 @@ function statBorder(i: number) {
 // ─── DemandanteView ───────────────────────────────────────────────────────────
 export function DemandanteView({
   publicaciones,
+  perfilMap,
   nombre,
   apellido,
   email,
 }: {
   publicaciones: Publicacion[];
+  perfilMap: Record<string, PerfilProfesional>;
   nombre?: string;
   apellido?: string;
   email?: string;
@@ -571,6 +589,7 @@ export function DemandanteView({
                   setExpandedId(expandedId === pub.id ? null : pub.id)
                 }
                 onAceptar={handleAceptar}
+                perfilMap={perfilMap}
               />
             ))
           )}

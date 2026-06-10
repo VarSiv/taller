@@ -6,15 +6,13 @@ import Image from "next/image";
 import { CATEGORIES } from "@/lib/data";
 import { CategoryArt } from "./CategoryArt";
 import { aceptarPropuesta } from "@/app/mis-consultas/actions";
+import { supabase } from "@/lib/supabase";
 
 export type PropuestaParaPago = {
   id: string;
   precio: number;
   nombre_profesional: string | null;
-  profesional_email?: string | null;
-  profesional_telefono?: string | null;
-  profesional_zona?: string | null;
-  profesional_dni?: string | null;
+  profesional_id: string;
   publicacion_id: string;
   created_at: string;
 };
@@ -295,21 +293,32 @@ function ContactRow({
 
 function StepDesbloqueado({
   nombre,
-  email,
-  telefono,
-  zona,
+  profesionalId,
   publicacion,
   cat,
   onClose,
 }: {
   nombre: string;
-  email?: string | null;
-  telefono?: string | null;
-  zona?: string | null;
+  profesionalId: string;
   publicacion: PublicacionParaPago;
   cat: ReturnType<typeof CATEGORIES.find>;
   onClose: () => void;
 }) {
+  const [perfil, setPerfil] = useState<{ telefono?: string | null; email?: string | null; zona?: string | null } | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("perfiles_profesionales")
+      .select("telefono, email, zona")
+      .eq("user_id", profesionalId)
+      .single()
+      .then(({ data }) => setPerfil(data ?? {}));
+  }, [profesionalId]);
+
+  const telefono = perfil?.telefono ?? null;
+  const email = perfil?.email ?? null;
+  const zona = perfil?.zona ?? null;
+
   const initials = nombre
     .split(" ")
     .filter(Boolean)
@@ -458,9 +467,7 @@ export function AceptarModal({ propuesta, publicacion, onClose, onPagoExitoso }:
         {step === 3 && (
           <StepDesbloqueado
             nombre={nombre}
-            email={propuesta.profesional_email}
-            telefono={propuesta.profesional_telefono}
-            zona={propuesta.profesional_zona}
+            profesionalId={propuesta.profesional_id}
             publicacion={publicacion}
             cat={cat}
             onClose={onPagoExitoso ?? onClose}
