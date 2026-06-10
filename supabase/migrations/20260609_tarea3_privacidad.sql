@@ -49,7 +49,11 @@ CREATE POLICY "verificaciones_owner" ON verificaciones
 
 -- 5. Trigger: auto-crear perfil cuando se registra un profesional
 CREATE OR REPLACE FUNCTION crear_perfil_al_registrarse()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   IF (NEW.raw_user_meta_data->>'es_profesional')::boolean = true THEN
     INSERT INTO perfiles_profesionales (user_id, nombre, telefono, email, rubro, zona)
@@ -71,7 +75,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
