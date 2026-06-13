@@ -78,10 +78,9 @@ export function FilterDropdown({ categories, zones, cat, zona, q, activeCount }:
                       key={c.slug}
                       href={buildQuery({ q, zona, cat: c.slug })}
                       onClick={() => setOpen(false)}
-                      className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors ${cat === c.slug ? "bg-sv-dark text-white" : "text-sv-dark hover:bg-zap-50"}`}
+                      className={`block rounded-lg px-3 py-1.5 text-sm transition-colors ${cat === c.slug ? "bg-sv-dark text-white" : "text-sv-dark hover:bg-zap-50"}`}
                     >
-                      <span>{c.icon} {c.name}</span>
-                      <span className={cat === c.slug ? "text-zap-300" : "text-ink-400"}>{c.count}</span>
+                      {c.icon} {c.name}
                     </Link>
                   ))}
                 </div>
