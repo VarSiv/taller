@@ -79,10 +79,10 @@ export async function Header() {
             </>
           ) : (
             <>
-              <Link href="/ingresar" className="btn-ghost hidden text-sm sm:inline-flex">
+              <Link href="/ingresar" className={navLink + " hidden sm:inline-flex"}>
                 Ingresar
               </Link>
-              <Link href="/registrar" className="btn-primary text-sm">
+              <Link href="/registrar" className="rounded-lg bg-sv-primary px-3.5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-sv-olive">
                 Crear cuenta
               </Link>
             </>
