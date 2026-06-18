@@ -8,12 +8,56 @@ import { CATEGORIES, URGENCIES, ZONES } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
 const STEPS = [
-  "Rubro",
-  "Detalle",
-  "Fotos",
   "Zona y urgencia",
+  "Rubro",
+  "Detalle y fotos",
   "Revisión",
 ] as const;
+
+const ZONES_WITH_OTHER = [...ZONES, "Otro"];
+
+const CATEGORY_INFO: Record<string, { examples: string[]; tip: string }> = {
+  plomeria: {
+    examples: ["Pérdida bajo la pileta", "Canilla que gotea", "Destape de baño"],
+    tip: "Mencioná si el agua está cortada o si hay daño visible en paredes.",
+  },
+  electricidad: {
+    examples: ["Corte de luz parcial", "Enchufe quemado", "Instalación de lámparas"],
+    tip: "Indicá si el tablero tiene térmicos saltados o si hay chispas.",
+  },
+  gas: {
+    examples: ["Olor a gas en la cocina", "Calefón que no enciende", "Prueba de estanqueidad"],
+    tip: "Si sentís olor a gas, abrí ventanas y ventilá el ambiente antes de publicar.",
+  },
+  aire: {
+    examples: ["Split que no enfría", "Instalación de equipo nuevo", "Limpieza de filtros"],
+    tip: "Indicá la marca, modelo y si hace algún ruido raro.",
+  },
+  cerrajeria: {
+    examples: ["Me quedé encerrado/a", "Cerradura rota", "Cambio de cerradura"],
+    tip: "Para urgencias seleccioná 'Hoy mismo' — ya lo elegiste en el paso anterior.",
+  },
+  pintura: {
+    examples: ["Repintar dormitorio", "Humedad en paredes", "Frente exterior"],
+    tip: "Mencioná la cantidad de ambientes o metros aproximados.",
+  },
+  carpinteria: {
+    examples: ["Puerta que no cierra bien", "Placard a medida", "Restaurar mueble"],
+    tip: "Medidas aproximadas y fotos ayudan mucho en este rubro.",
+  },
+  albanileria: {
+    examples: ["Revoque caído", "Contrapiso nuevo", "Reforma de baño"],
+    tip: "Describí el área afectada en m² si podés estimar.",
+  },
+  electrodomesticos: {
+    examples: ["Heladera que no enfría", "Lavarropas que no centrifuga", "Horno sin calor"],
+    tip: "Indicá la marca y el modelo del equipo si lo tenés a mano.",
+  },
+  vidrieria: {
+    examples: ["Vidrio roto", "Mampara de baño", "Espejo nuevo"],
+    tip: "Si podés, medí el vidrio en cm antes — aproximado está bien.",
+  },
+};
 
 export function PublicarForm() {
   return (
@@ -28,10 +72,9 @@ function PublicarInner() {
   const params = useSearchParams();
   const initialCat = params.get("cat") ?? "";
 
-  const [step, setStep] = useState(initialCat ? 1 : 0);
+  const [step, setStep] = useState(0);
   const [cat, setCat] = useState(initialCat);
   const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [zone, setZone] = useState("");
@@ -55,7 +98,7 @@ function PublicarInner() {
 
     const { error } = await supabase.from("publicaciones").insert({
       title,
-      description: desc,
+      description: "",
       category_slug: cat,
       zone,
       urgency,
@@ -76,10 +119,9 @@ function PublicarInner() {
   }
 
   const canContinue = (() => {
-    if (step === 0) return !!cat;
-    if (step === 1) return title.trim().length > 8;
-    if (step === 2) return true;
-    if (step === 3) return !!zone && !!urgency;
+    if (step === 0) return !!zone && !!urgency && zone !== "Otro";
+    if (step === 1) return !!cat;
+    if (step === 2) return title.trim().length > 8;
     return true;
   })();
 
@@ -141,20 +183,21 @@ function PublicarInner() {
               Paso {step + 1} de {STEPS.length}
             </div>
             <h1 className="display mt-1 text-3xl md:text-4xl">
-              {STEPS[step] === "Rubro" && "¿Qué necesitás resolver?"}
-              {STEPS[step] === "Detalle" && "Contanos el problema"}
-              {STEPS[step] === "Fotos" && "Subí fotos del problema"}
               {STEPS[step] === "Zona y urgencia" && "¿Dónde y cuándo?"}
+              {STEPS[step] === "Rubro" && "¿Qué necesitás resolver?"}
+              {STEPS[step] === "Detalle y fotos" && "Contanos el problema"}
               {STEPS[step] === "Revisión" && "Revisemos antes de publicar"}
             </h1>
 
             <div className="mt-8">
-              {step === 0 && <StepRubro value={cat} onChange={setCat} />}
-              {step === 1 && (
-                <StepDetalle title={title} onTitle={setTitle} />
+              {step === 0 && (
+                <StepZona zone={zone} urgency={urgency} onZone={setZone} onUrgency={setUrgency} />
               )}
+              {step === 1 && <StepRubro value={cat} onChange={setCat} />}
               {step === 2 && (
-                <StepFotos
+                <StepDetalleYFotos
+                  title={title}
+                  onTitle={setTitle}
                   photos={photos}
                   setPhotos={setPhotos}
                   uploading={uploadingPhotos}
@@ -162,9 +205,6 @@ function PublicarInner() {
                 />
               )}
               {step === 3 && (
-                <StepZona zone={zone} urgency={urgency} onZone={setZone} onUrgency={setUrgency} />
-              )}
-              {step === 4 && (
                 <StepReview
                   title={title}
                   cat={selectedCat?.name}
@@ -182,15 +222,15 @@ function PublicarInner() {
             )}
 
             <div className="mt-6 flex flex-col-reverse gap-3 border-t border-zap-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <button onClick={back} disabled={step === 0 || submitting} className="btn-ghost disabled:opacity-40">
+              <button type="button" onClick={back} disabled={step === 0 || submitting} className="btn-ghost disabled:opacity-40">
                 ← Volver
               </button>
               {step < STEPS.length - 1 ? (
-                <button onClick={next} disabled={!canContinue || uploadingPhotos} className="btn-primary disabled:opacity-50">
+                <button type="button" onClick={next} disabled={!canContinue || uploadingPhotos} className="btn-primary disabled:opacity-50">
                   Continuar
                 </button>
               ) : (
-                <button onClick={submit} disabled={submitting} className="btn-zap disabled:opacity-50">
+                <button type="button" onClick={submit} disabled={submitting} className="btn-zap disabled:opacity-50">
                   {submitting ? "Publicando…" : "Publicar problema"}
                 </button>
               )}
@@ -204,7 +244,77 @@ function PublicarInner() {
 
 /* --- STEPS --- */
 
+function StepZona({
+  zone, urgency, onZone, onUrgency,
+}: {
+  zone: string; urgency: string; onZone: (v: string) => void; onUrgency: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-8">
+      <div>
+        <label className="label">Zona</label>
+        <div className="flex flex-wrap gap-1.5">
+          {ZONES_WITH_OTHER.map((z) => (
+            <button
+              type="button"
+              key={z}
+              onClick={() => onZone(z)}
+              className={`pill border ${
+                zone === z
+                  ? z === "Otro"
+                    ? "border-amber-500 bg-amber-500 text-white"
+                    : "border-sv-dark bg-sv-dark text-white"
+                  : "border-zap-200 bg-white text-sv-dark hover:border-sv-primary"
+              }`}
+            >
+              📍 {z}
+            </button>
+          ))}
+        </div>
+
+        {zone === "Otro" && (
+          <div className="mt-4 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <span className="mt-0.5 shrink-0 text-xl">⚠️</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">
+                Todavía no llegamos a tu zona
+              </p>
+              <p className="mt-1 text-sm text-amber-700">
+                Por ahora SolvIT opera en zonas seleccionadas de CABA y GBA Norte. Si publicás en &quot;Otro&quot;, no vas a recibir propuestas porque ningún técnico de la plataforma opera ahí todavía.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="label">Urgencia</label>
+        <div className="grid gap-2 sm:grid-cols-3">
+          {URGENCIES.map((u) => (
+            <button
+              type="button"
+              key={u.value}
+              onClick={() => onUrgency(u.value)}
+              className={`rounded-2xl border p-4 text-left ${
+                urgency === u.value
+                  ? "border-sv-dark bg-sv-dark text-white"
+                  : "border-zap-100 bg-white hover:border-sv-primary"
+              }`}
+            >
+              <div className="text-sm font-semibold">{u.label}</div>
+              <div className={`text-xs ${urgency === u.value ? "text-zap-200" : "text-ink-400"}`}>{u.note}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StepRubro({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const info = CATEGORY_INFO[value];
+  const selectedName = CATEGORIES.find((c) => c.slug === value)?.name;
+
   return (
     <div>
       <p className="text-ink-400">
@@ -215,6 +325,7 @@ function StepRubro({ value, onChange }: { value: string; onChange: (v: string) =
           const active = value === c.slug;
           return (
             <button
+              type="button"
               key={c.slug}
               onClick={() => onChange(c.slug)}
               className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition ${
@@ -239,37 +350,39 @@ function StepRubro({ value, onChange }: { value: string; onChange: (v: string) =
           );
         })}
       </div>
+
+      {value && info && (
+        <div className="mt-6 rounded-2xl border border-sv-primary/20 bg-sv-primary/5 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-sv-olive">
+            Problemas frecuentes en {selectedName}
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            {info.examples.map((ex) => (
+              <li key={ex} className="flex items-center gap-2 text-sm text-sv-dark">
+                <span className="text-sv-primary font-bold">·</span> {ex}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex gap-2.5 rounded-xl bg-white/70 p-3">
+            <span className="shrink-0 text-base">💡</span>
+            <p className="text-xs text-ink-500">{info.tip}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function StepDetalle({
-  title, onTitle,
-}: {
-  title: string; onTitle: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <label className="label">Resumen del problema</label>
-        <input
-          value={title}
-          onChange={(e) => onTitle(e.target.value)}
-          placeholder="Ej: Pérdida abajo de la pileta de cocina"
-          className="field"
-        />
-        <div className="mt-1 text-xs text-ink-400">Una frase corta. Como si se lo contaras a un amigo.</div>
-      </div>
-    </div>
-  );
-}
-
-function StepFotos({
+function StepDetalleYFotos({
+  title,
+  onTitle,
   photos,
   setPhotos,
   uploading,
   setUploading,
 }: {
+  title: string;
+  onTitle: (v: string) => void;
   photos: string[];
   setPhotos: (p: string[]) => void;
   uploading: boolean;
@@ -317,105 +430,79 @@ function StepFotos({
   }
 
   return (
-    <div>
-      <p className="text-ink-400">Las fotos son opcionales pero recomendadas. 2–3 buenas fotos aceleran todo.</p>
-
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {photos.map((src, i) => (
-          <div key={i} className="group relative aspect-square overflow-hidden rounded-xl bg-ink-100">
-            <Image src={src} alt="" fill sizes="200px" className="object-cover" />
-            <button
-              type="button"
-              onClick={() => remove(i)}
-              className="absolute right-2 top-2 rounded-full bg-sv-dark px-2 py-0.5 text-[11px] text-white opacity-0 transition group-hover:opacity-100"
-            >
-              Quitar
-            </button>
-          </div>
-        ))}
-
-        {uploading && (
-          <div className="flex aspect-square items-center justify-center rounded-xl border-2 border-dashed border-sv-primary bg-zap-50">
-            <div className="text-center">
-              <div className="text-2xl animate-spin">⏳</div>
-              <div className="mt-2 text-xs text-ink-400">Subiendo…</div>
-            </div>
-          </div>
-        )}
-
-        {!uploading && photos.length < 5 && (
-          <label className="flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-zap-200 text-center transition hover:border-sv-primary hover:bg-zap-50">
-            <div>
-              <div className="text-3xl">📷</div>
-              <div className="mt-2 text-xs text-ink-400">Agregar foto</div>
-              <div className="text-[10px] text-ink-300">desde tu dispositivo</div>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => handleFiles(e.target.files)}
-            />
-          </label>
-        )}
-      </div>
-
-      {uploadError && (
-        <p className="mt-3 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{uploadError}</p>
-      )}
-
-      <p className="mt-4 text-xs text-ink-400">
-        Máximo 5 fotos · JPG, PNG, WEBP · hasta 10 MB por foto
-      </p>
-    </div>
-  );
-}
-
-function StepZona({
-  zone, urgency, onZone, onUrgency,
-}: {
-  zone: string; urgency: string; onZone: (v: string) => void; onUrgency: (v: string) => void;
-}) {
-  return (
     <div className="space-y-8">
+      {/* Resumen */}
       <div>
-        <label className="label">Zona</label>
-        <div className="flex flex-wrap gap-1.5">
-          {ZONES.map((z) => (
-            <button
-              key={z}
-              onClick={() => onZone(z)}
-              className={`pill border ${
-                zone === z
-                  ? "border-sv-dark bg-sv-dark text-white"
-                  : "border-zap-200 bg-white text-sv-dark hover:border-sv-primary"
-              }`}
-            >
-              📍 {z}
-            </button>
-          ))}
+        <label className="label">Resumen del problema</label>
+        <input
+          value={title}
+          onChange={(e) => onTitle(e.target.value)}
+          placeholder="Ej: Pérdida abajo de la pileta de cocina"
+          className="field"
+        />
+        <div className="mt-1 text-xs text-ink-400">
+          Una frase corta. Como si se lo contaras a un amigo.
         </div>
       </div>
 
+      {/* Fotos */}
       <div>
-        <label className="label">Urgencia</label>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {URGENCIES.map((u) => (
-            <button
-              key={u.value}
-              onClick={() => onUrgency(u.value)}
-              className={`rounded-2xl border p-4 text-left ${
-                urgency === u.value
-                  ? "border-sv-dark bg-sv-dark text-white"
-                  : "border-zap-100 bg-white hover:border-sv-primary"
-              }`}
-            >
-              <div className="text-sm font-semibold">{u.label}</div>
-              <div className={`text-xs ${urgency === u.value ? "text-zap-200" : "text-ink-400"}`}>{u.note}</div>
-            </button>
+        <label className="label">
+          Fotos{" "}
+          <span className="font-normal text-ink-400">(opcional)</span>
+        </label>
+        <p className="mb-4 text-sm text-ink-400">
+          2–3 buenas fotos aceleran todo.
+        </p>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {photos.map((src, i) => (
+            <div key={i} className="group relative aspect-square overflow-hidden rounded-xl bg-ink-100">
+              <Image src={src} alt="" fill sizes="200px" className="object-cover" />
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="absolute right-2 top-2 rounded-full bg-sv-dark px-2 py-0.5 text-[11px] text-white opacity-0 transition group-hover:opacity-100"
+              >
+                Quitar
+              </button>
+            </div>
           ))}
+
+          {uploading && (
+            <div className="flex aspect-square items-center justify-center rounded-xl border-2 border-dashed border-sv-primary bg-zap-50">
+              <div className="text-center">
+                <div className="text-2xl animate-spin">⏳</div>
+                <div className="mt-2 text-xs text-ink-400">Subiendo…</div>
+              </div>
+            </div>
+          )}
+
+          {!uploading && photos.length < 5 && (
+            <label className="flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-zap-200 text-center transition hover:border-sv-primary hover:bg-zap-50">
+              <div>
+                <div className="text-3xl">📷</div>
+                <div className="mt-2 text-xs text-ink-400">Agregar foto</div>
+                <div className="text-[10px] text-ink-300">desde tu dispositivo</div>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFiles(e.target.files)}
+              />
+            </label>
+          )}
         </div>
+
+        {uploadError && (
+          <p className="mt-3 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{uploadError}</p>
+        )}
+
+        <p className="mt-4 text-xs text-ink-400">
+          Máximo 5 fotos · JPG, PNG, WEBP · hasta 10 MB por foto
+        </p>
       </div>
     </div>
   );
