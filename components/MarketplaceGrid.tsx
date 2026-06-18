@@ -203,11 +203,11 @@ function JobCard({
 
   const cardBase = esProfesional
     ? [
-        "animate-card flex flex-col overflow-hidden rounded-2xl border",
+        "flex flex-col overflow-hidden rounded-2xl border",
         esMio ? "border-l-4 border-l-amber-400 border-white/10 bg-[#162420]" : "border-white/10 bg-[#162420]",
       ].join(" ")
     : [
-        "animate-card card flex flex-col overflow-hidden",
+        "card flex flex-col overflow-hidden",
         esMio ? "border-l-4 border-l-amber-400 ring-1 ring-amber-200" : "border-ink-100",
         !esMio && !sinSesion ? "opacity-90" : "",
       ].join(" ");
