@@ -146,6 +146,18 @@
   animation: card-fade-in 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
+/* ── Scroll reveal ─────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ── Reducir movimiento ────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .animate-dropdown,
@@ -153,6 +165,11 @@
   .animate-modal,
   .animate-card {
     animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
 

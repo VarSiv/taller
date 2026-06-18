@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PASOS_CLIENTE = [
@@ -58,26 +59,29 @@ const FAQ = [
   },
 ];
 
+const FAQ_DELAYS = ["delay-0", "delay-100", "delay-200", "delay-300"];
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ComoFuncionaPage() {
   return (
     <>
       <Header />
+      <ScrollReveal />
       <main className="bg-[#f5fdf9]">
 
         {/* ── Hero ── */}
         <section className="container-pad pt-14 pb-12">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sv-primary">
+          <p className="reveal delay-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-sv-primary">
             Cómo funciona
           </p>
-          <h1 className="display mt-3 text-[2.6rem] leading-[1.08] text-sv-dark sm:text-5xl">
+          <h1 className="reveal delay-100 display mt-3 text-[2.6rem] leading-[1.08] text-sv-dark sm:text-5xl">
             De la foto<br />al técnico,<br />
             <em className="not-italic text-sv-primary">sin ruleta.</em>
           </h1>
-          <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-ink-500">
+          <p className="reveal delay-200 mt-5 max-w-sm text-[15px] leading-relaxed text-ink-500">
             Publicás el problema. Técnicos verificados te mandan propuesta. Elegís solo si te convence — y pagás solo si aceptás.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="reveal delay-300 mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href="/publicar" className="btn-primary text-center">
               Publicar mi problema
             </Link>
@@ -90,17 +94,17 @@ export default function ComoFuncionaPage() {
         {/* ── Flujo cliente ── */}
         <section className="bg-white">
           <div className="container-pad py-14">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">
+            <p className="reveal delay-0 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">
               Para clientes
             </p>
-            <h2 className="display mt-1.5 text-2xl text-sv-dark sm:text-3xl">
+            <h2 className="reveal delay-100 display mt-1.5 text-2xl text-sv-dark sm:text-3xl">
               Si necesitás resolver algo
             </h2>
 
             <div className="mt-10 space-y-0">
-              {PASOS_CLIENTE.map((paso, i) => (
-                <StepRow key={i} n={i + 1} paso={paso} last={i === PASOS_CLIENTE.length - 1} />
-              ))}
+              <StepRow n={1} paso={PASOS_CLIENTE[0]} last={false} delay="delay-0" />
+              <StepRow n={2} paso={PASOS_CLIENTE[1]} last={false} delay="delay-150" />
+              <StepRow n={3} paso={PASOS_CLIENTE[2]} last={true}  delay="delay-300" />
             </div>
           </div>
         </section>
@@ -108,36 +112,36 @@ export default function ComoFuncionaPage() {
         {/* ── Flujo técnico ── */}
         <section className="bg-sv-dark">
           <div className="container-pad py-14">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sv-primary/70">
+            <p className="reveal delay-0 text-[11px] font-semibold uppercase tracking-[0.16em] text-sv-primary/70">
               Para profesionales
             </p>
-            <h2 className="display mt-1.5 text-2xl text-white sm:text-3xl">
+            <h2 className="reveal delay-100 display mt-1.5 text-2xl text-white sm:text-3xl">
               Si sos técnico
             </h2>
-            <p className="mt-2 text-sm text-white/50">
+            <p className="reveal delay-200 mt-2 text-sm text-white/50">
               Cero comisiones sobre tu cotización. Llegás con el problema ya descripto.
             </p>
 
             <div className="mt-10 space-y-0">
-              {PASOS_TECNICO.map((paso, i) => (
-                <StepRowDark key={i} n={i + 1} paso={paso} last={i === PASOS_TECNICO.length - 1} />
-              ))}
+              <StepRowDark n={1} paso={PASOS_TECNICO[0]} last={false} delay="delay-0" />
+              <StepRowDark n={2} paso={PASOS_TECNICO[1]} last={false} delay="delay-150" />
+              <StepRowDark n={3} paso={PASOS_TECNICO[2]} last={true}  delay="delay-300" />
             </div>
           </div>
         </section>
 
         {/* ── Precios ── */}
         <section className="container-pad py-14">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">
+          <p className="reveal delay-0 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">
             Transparencia de precios
           </p>
-          <h2 className="display mt-1.5 text-2xl text-sv-dark sm:text-3xl">
+          <h2 className="reveal delay-100 display mt-1.5 text-2xl text-sv-dark sm:text-3xl">
             Sin sorpresas
           </h2>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             {/* Cliente */}
-            <div className="rounded-2xl border border-ink-100 bg-white p-6">
+            <div className="reveal delay-0 rounded-2xl border border-ink-100 bg-white p-6">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
                 Para clientes
               </p>
@@ -160,7 +164,7 @@ export default function ComoFuncionaPage() {
             </div>
 
             {/* Técnico */}
-            <div className="rounded-2xl border border-sv-primary/25 bg-sv-primary/5 p-6">
+            <div className="reveal delay-150 rounded-2xl border border-sv-primary/25 bg-sv-primary/5 p-6">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-sv-olive">
                 Para técnicos
               </p>
@@ -187,12 +191,12 @@ export default function ComoFuncionaPage() {
         {/* ── FAQ ── */}
         <section className="bg-white">
           <div className="container-pad py-14">
-            <h2 className="display text-2xl text-sv-dark sm:text-3xl">
+            <h2 className="reveal delay-0 display text-2xl text-sv-dark sm:text-3xl">
               Preguntas frecuentes
             </h2>
             <div className="mt-7 divide-y divide-ink-100 border-t border-ink-100">
-              {FAQ.map((f) => (
-                <details key={f.q} className="group py-5">
+              {FAQ.map((f, i) => (
+                <details key={f.q} className={`reveal ${FAQ_DELAYS[i] ?? "delay-0"} group py-5`}>
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-[15px] font-medium text-sv-dark">
                     {f.q}
                     <span className="mt-0.5 shrink-0 text-ink-300 transition-transform duration-200 group-open:rotate-180">
@@ -208,7 +212,7 @@ export default function ComoFuncionaPage() {
 
         {/* ── CTA final ── */}
         <section className="container-pad py-14">
-          <div className="rounded-2xl bg-sv-dark px-7 py-10 text-center sm:px-12">
+          <div className="reveal rounded-2xl bg-sv-dark px-7 py-10 text-center sm:px-12">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sv-primary">
               Sin riesgo
             </p>
@@ -235,13 +239,15 @@ function StepRow({
   n,
   paso,
   last,
+  delay = "delay-0",
 }: {
   n: number;
   paso: { icon: string; title: string; body: string };
   last: boolean;
+  delay?: string;
 }) {
   return (
-    <div className="relative flex gap-5">
+    <div className={`reveal ${delay} relative flex gap-5`}>
       {/* Columna izquierda: número + línea */}
       <div className="flex flex-col items-center">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sv-primary/10 text-sm font-semibold text-sv-primary">
@@ -251,7 +257,7 @@ function StepRow({
       </div>
 
       {/* Contenido */}
-      <div className={`pb-10 ${last ? "" : ""}`}>
+      <div className="pb-10">
         <span className="text-xl">{paso.icon}</span>
         <h3 className="mt-1.5 text-[15px] font-semibold text-sv-dark">{paso.title}</h3>
         <p className="mt-1 text-sm leading-relaxed text-ink-500">{paso.body}</p>
@@ -264,13 +270,15 @@ function StepRowDark({
   n,
   paso,
   last,
+  delay = "delay-0",
 }: {
   n: number;
   paso: { icon: string; title: string; body: string };
   last: boolean;
+  delay?: string;
 }) {
   return (
-    <div className="relative flex gap-5">
+    <div className={`reveal ${delay} relative flex gap-5`}>
       {/* Columna izquierda: número + línea */}
       <div className="flex flex-col items-center">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sv-primary/15 text-sm font-semibold text-sv-primary">
