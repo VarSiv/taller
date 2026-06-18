@@ -67,7 +67,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "plomeria",
     name: "Plomería",
-    blurb: "Pérdidas, destapes, instalaciones",
+    blurb: "Pérdida de agua, canilla rota, destape",
     icon: "🔧",
     count: 142,
     accent: "from-sky-100 to-sky-50",
@@ -76,7 +76,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "electricidad",
     name: "Electricidad",
-    blurb: "Tableros, cortocircuitos, instalación",
+    blurb: "Se fue la luz, enchufe quemado, corte",
     icon: "⚡",
     count: 118,
     accent: "from-amber-100 to-amber-50",
@@ -85,7 +85,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "gas",
     name: "Gas matriculado",
-    blurb: "Pruebas, reparaciones, certificados",
+    blurb: "Olor a gas, calefón que no enciende",
     icon: "🔥",
     count: 47,
     accent: "from-rose-100 to-rose-50",
@@ -94,7 +94,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "aire",
     name: "Aire acondicionado",
-    blurb: "Instalación, carga, service",
+    blurb: "No enfría, hace ruido, no enciende",
     icon: "❄️",
     count: 96,
     accent: "from-cyan-100 to-cyan-50",
@@ -103,7 +103,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "cerrajeria",
     name: "Cerrajería",
-    blurb: "Cerraduras, urgencias, blindaje",
+    blurb: "Me quedé afuera, cerradura trabada",
     icon: "🔑",
     count: 64,
     accent: "from-zinc-100 to-zinc-50",
@@ -112,7 +112,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "pintura",
     name: "Pintura",
-    blurb: "Interiores, frentes, antihumedad",
+    blurb: "Paredes descascaradas, humedad, renovar",
     icon: "🎨",
     count: 73,
     accent: "from-violet-100 to-violet-50",
@@ -121,7 +121,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "carpinteria",
     name: "Carpintería",
-    blurb: "Muebles a medida, restauración",
+    blurb: "Puerta que no cierra, mueble roto",
     icon: "🪵",
     count: 51,
     accent: "from-orange-100 to-orange-50",
@@ -130,7 +130,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "albanileria",
     name: "Albañilería",
-    blurb: "Reformas, revoques, contrapisos",
+    blurb: "Grietas, piso roto, reforma de baño",
     icon: "🧱",
     count: 38,
     accent: "from-stone-100 to-stone-50",
@@ -139,7 +139,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "electrodomesticos",
     name: "Electrodomésticos",
-    blurb: "Heladeras, lavarropas, hornos",
+    blurb: "Heladera que no enfría, lavarropas roto",
     icon: "📺",
     count: 42,
     accent: "from-emerald-100 to-emerald-50",
@@ -148,7 +148,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "vidrieria",
     name: "Vidriería",
-    blurb: "Cambios, mamparas, espejos",
+    blurb: "Vidrio roto, ventana que no cierra",
     icon: "🪟",
     count: 22,
     accent: "from-blue-100 to-blue-50",
