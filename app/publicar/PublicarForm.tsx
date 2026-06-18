@@ -320,7 +320,33 @@ function StepRubro({ value, onChange }: { value: string; onChange: (v: string) =
       <p className="text-ink-400">
         Elegí el rubro principal. Si tu problema toca varios, después podemos sumar.
       </p>
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+
+      {/* Card informativa — visible siempre, actualiza al seleccionar */}
+      <div className="mt-4 rounded-2xl border border-sv-primary/20 bg-sv-primary/5 p-4 min-h-[88px]">
+        {value && info ? (
+          <>
+            <p className="text-xs font-semibold uppercase tracking-wider text-sv-olive">
+              Ejemplos en {selectedName}
+            </p>
+            <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              {info.examples.map((ex) => (
+                <li key={ex} className="flex items-center gap-1.5 text-sm text-sv-dark">
+                  <span className="text-sv-primary font-bold">·</span> {ex}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-ink-500">
+              💡 {info.tip}
+            </p>
+          </>
+        ) : (
+          <p className="text-sm text-ink-400">
+            Seleccioná un rubro para ver ejemplos de problemas frecuentes y consejos para recibir mejores propuestas.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
         {CATEGORIES.map((c) => {
           const active = value === c.slug;
           return (
@@ -350,25 +376,6 @@ function StepRubro({ value, onChange }: { value: string; onChange: (v: string) =
           );
         })}
       </div>
-
-      {value && info && (
-        <div className="mt-6 rounded-2xl border border-sv-primary/20 bg-sv-primary/5 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-sv-olive">
-            Problemas frecuentes en {selectedName}
-          </p>
-          <ul className="mt-3 space-y-1.5">
-            {info.examples.map((ex) => (
-              <li key={ex} className="flex items-center gap-2 text-sm text-sv-dark">
-                <span className="text-sv-primary font-bold">·</span> {ex}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 flex gap-2.5 rounded-xl bg-white/70 p-3">
-            <span className="shrink-0 text-base">💡</span>
-            <p className="text-xs text-ink-500">{info.tip}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
