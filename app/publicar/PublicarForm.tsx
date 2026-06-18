@@ -17,6 +17,10 @@ const STEPS = [
 const ZONES_WITH_OTHER = [...ZONES, "Otro"];
 
 const CATEGORY_INFO: Record<string, { examples: string[]; tip: string }> = {
+  no_se: {
+    examples: ["No sé exactamente qué falló", "Puede ser más de un rubro", "Necesito que alguien lo diagnostique"],
+    tip: "Describí el problema con tus palabras en el paso siguiente. Vamos a asignarlo al técnico correcto.",
+  },
   plomeria: {
     examples: ["Pérdida bajo la pileta", "Canilla que gotea", "Destape de baño"],
     tip: "Mencioná si el agua está cortada o si hay daño visible en paredes.",
@@ -313,7 +317,7 @@ function StepZona({
 
 function StepRubro({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const info = CATEGORY_INFO[value];
-  const selectedName = CATEGORIES.find((c) => c.slug === value)?.name;
+  const selectedName = value === "no_se" ? "No lo sé" : CATEGORIES.find((c) => c.slug === value)?.name;
 
   return (
     <div>
@@ -375,6 +379,28 @@ function StepRubro({ value, onChange }: { value: string; onChange: (v: string) =
             </button>
           );
         })}
+
+        {/* No lo sé */}
+        <button
+          type="button"
+          onClick={() => onChange("no_se")}
+          className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition ${
+            value === "no_se"
+              ? "border-sv-dark bg-sv-dark text-white"
+              : "border-dashed border-zap-200 bg-white hover:border-sv-primary"
+          }`}
+        >
+          <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gradient-to-br from-ink-100 to-ink-50 opacity-80" />
+          <div className="relative">
+            <div className="text-2xl">🤔</div>
+            <div className={`mt-2 text-sm font-semibold ${value === "no_se" ? "text-white" : "text-sv-dark"}`}>
+              No lo sé
+            </div>
+            <div className={`text-xs ${value === "no_se" ? "text-zap-200" : "text-ink-400"}`}>
+              Describilo y te ayudamos
+            </div>
+          </div>
+        </button>
       </div>
     </div>
   );
