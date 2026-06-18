@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CATEGORIES, URGENCIES, ZONES } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
+import { crearPublicacion } from "./actions";
 
 const STEPS = [
   "Zona y urgencia",
@@ -97,29 +98,21 @@ function PublicarInner() {
     setSubmitError("");
     setSubmitting(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    const nombre = user?.user_metadata?.nombre as string | undefined;
-
-    const { error } = await supabase.from("publicaciones").insert({
+    const result = await crearPublicacion({
       title,
-      description: "",
       category_slug: cat,
       zone,
       urgency,
-      photo: photos[0] ?? null,
-      photos: photos,
-      posted_by: nombre ?? "Anónimo",
-      user_id: user?.id ?? null,
-      status: "abierto",
+      photos,
     });
 
-    if (error) {
-      setSubmitError(`Error al publicar: ${error.message}`);
+    if (result.error) {
+      setSubmitError(result.error);
       setSubmitting(false);
       return;
     }
 
-    router.push("/publicar/exito");
+    router.push(`/publicar/pendiente?email=${encodeURIComponent(result.email ?? "")}`);
   }
 
   const canContinue = (() => {
